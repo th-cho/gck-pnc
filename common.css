@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+:root {
+    --gongcha-red: #8B0029;
+    --gongcha-dark: #6e0021;
+    --text-black: #000000;
+}
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f8f9fa;
+    color: var(--text-black);
+}
+
+/* 공통 버튼 스타일 */
+.btn-gongcha {
+    background-color: var(--gongcha-red);
+    color: white;
+    border: none;
+}
+.btn-gongcha:hover {
+    background-color: var(--gongcha-dark);
+    color: white;
+}
+
+/* 텍스트 유틸리티 */
+.text-gongcha {
+    color: var(--gongcha-red) !important;
+}
+
+/* 카드 스타일 */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04);
+}
+
+/* 테이블 스타일 통일 */
+.table {
+    font-size: 13px; /* 테이블 기본 폰트 크기 통일 */
+}
+.table thead th {
+    background-color: #f8f9fa;
+    font-size: 12px; /* 헤더는 본문보다 약간 작게 */
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6c757d;
+    border-top: none;
+    padding: 12px 10px;
+    vertical-align: middle;
+}
+.table tbody td {
+    vertical-align: middle;
+    padding: 10px;
+}
+/* 테이블 내 입력 폼 크기 조정 */
+.table .form-control-sm,
+.table .form-select-sm {
+    font-size: 12px;
+}
+
+/* 뱃지 스타일 */
+.status-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 50px;
+}
