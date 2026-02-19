@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f8f9fa; padding: 20px; }
+        :root { --gongcha-red: #8B0029; }
+        .btn-gongcha { background-color: var(--gongcha-red); color: white; border: none; }
+        .btn-gongcha:hover { background-color: #6e0021; color: white; }
+        .text-gongcha { color: var(--gongcha-red); }
+        .card { border: none; border-radius: 12px; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04); }
+        .table thead th { background-color: #f8f9fa; font-size: 11px; text-transform: uppercase; color: #6c757d; }
+        .required-mark::after { content: '*'; color: var(--gongcha-red); margin-left: 2px; }
+        .status-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 50px; }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <!-- 검색 필터 -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-body p-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted uppercase">사용자구분</label>
+                    <select class="form-select form-select-sm border-secondary-subtle">
+                        <option>전체</option>
+                        <option>본사사용자</option>
+                        <option>매장사용자</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted uppercase">근무구분</label>
+                    <select class="form-select form-select-sm border-secondary-subtle">
+                        <option>전체</option>
+                        <option>정규근무자</option>
+                        <option>파트타이머(단시간)</option>
+                        <option>파트타이머(초단시간)</option>
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label small fw-bold text-muted">ID / 성명 / 사번</label>
+                    <input type="text" class="form-control form-control-sm border-secondary-subtle" placeholder="ID, 성명 또는 사번을 입력하세요.">
+                </div>
+                <div class="col-md-3 d-flex gap-2 justify-content-end">
+                    <button class="btn btn-sm btn-light border px-3"><i data-lucide="rotate-ccw" style="width:14px;"></i> 초기화</button>
+                    <button class="btn btn-sm btn-gongcha px-4"><i data-lucide="search" style="width:14px;"></i> 조회</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- 사용자 목록 -->
+        <div class="col-xl-8">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold">사용자 목록</h6>
+                    <button class="btn btn-sm btn-gongcha px-3" id="btnNewUser"><i data-lucide="plus" style="width:14px;"></i> 신규등록</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                        <tr class="bg-light">
+                            <th class="text-center" style="width: 50px;">NO</th>
+                            <th>사번</th>
+                            <th>사용자명</th>
+                            <th>매장/부서</th>
+                            <th>근무유형</th>
+                            <th class="text-center">모성보호</th>
+                            <th class="text-center">상태</th>
+                        </tr>
+                        </thead>
+                        <tbody id="userListBody">
+                        <tr style="cursor:pointer;" onclick="viewDetail('S19080901', '박지홍', 'REGULAR')">
+                            <td class="text-center text-muted small">1</td>
+                            <td class="fw-bold small text-gongcha">$19080901</td>
+                            <td class="small">박지홍</td>
+                            <td class="small">광복점</td>
+                            <td class="small"><span class="badge bg-light text-dark border">정규직</span></td>
+                            <td class="text-center">-</td>
+                            <td class="text-center"><span class="status-badge bg-success-subtle text-success">재직</span></td>
+                        </tr>
+                        <tr style="cursor:pointer;" onclick="viewDetail('P24082201', '김예지', 'SHORT')">
+                            <td class="text-center text-muted small">2</td>
+                            <td class="fw-bold small text-gongcha">P24082201</td>
+                            <td class="small">김예지</td>
+                            <td class="small">강남본점</td>
+                            <td class="small"><span class="badge bg-light text-dark border">단시간(15h↑)</span></td>
+                            <td class="text-center text-danger"><i data-lucide="heart" style="width:12px;"></i></td>
+                            <td class="text-center"><span class="status-badge bg-success-subtle text-success">재직</span></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 사용자 상세 정보 -->
+        <div class="col-xl-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-header bg-white p-3 border-bottom-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <i data-lucide="user-plus" class="text-danger" style="color:var(--gongcha-red) !important;"></i>
+                        <h6 id="formTitle" class="mb-0 fw-bold">사용자 상세 정보</h6>
+                    </div>
+                </div>
+                <div class="card-body p-4 pt-2">
+                    <form id="userForm">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold required-mark">사용자명</label>
+                                <input type="text" id="formUserNm" class="form-control form-control-sm border-secondary-subtle" placeholder="성명 입력">
+                            </div>
+                            <div class="col-md-12 mt-3 pt-3 border-top">
+                                <label class="form-label small fw-bold text-gongcha">근무유형 (정책 적용)</label>
+                                <select class="form-select form-select-sm border-secondary-subtle" id="formWorkType">
+                                    <option value="REGULAR">정규근무자 (일 8h)</option>
+                                    <option value="SHORT">파트타이머 (단시간 - 15h↑)</option>
+                                    <option value="ULTRA">파트타이머 (초단시간 - 15h↓)</option>
+                                </select>
+                                <div class="mt-1 text-muted" style="font-size: 10px;">* 유형에 따라 주휴수당 및 공휴일 유급 여부가 자동 판정됩니다.</div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="card bg-light border-0 p-3 shadow-sm">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="small fw-bold"><i data-lucide="heart" class="text-danger me-2" style="width:14px;"></i>모성보호(임신기) 설정</span>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch" id="formPregCheck">
+                                        </div>
+                                    </div>
+                                    <div id="pregDateRange" class="mt-3 d-none">
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label class="form-label" style="font-size: 10px;">시작일</label>
+                                                <input type="date" class="form-control form-control-sm border-secondary-subtle">
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="form-label" style="font-size: 10px;">종료예정일</label>
+                                                <input type="date" class="form-control form-control-sm border-secondary-subtle">
+                                            </div>
+                                        </div>
+                                        <p class="text-danger mt-2 mb-0 fw-bold" style="font-size: 10px;">* 해당 기간 중 연장/심야 근무가 자동 차단됩니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 d-grid gap-2 border-top pt-3">
+                            <button type="submit" class="btn btn-sm btn-gongcha px-5 shadow-sm">저장하기</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    lucide.createIcons();
+    function viewDetail(id, name, type) {
+        $('#formTitle').text('사용자 수정 (' + id + ')');
+        $('#formUserNm').val(name);
+        $('#formWorkType').val(type);
+        $('#formPregCheck').prop('checked', (id === 'P24082201')).trigger('change');
+    }
+    $('#formPregCheck').on('change', function() {
+        $('#pregDateRange').toggleClass('d-none', !$(this).is(':checked'));
+    });
+    $('#btnNewUser').on('click', function() {
+        $('#formTitle').text('사용자 신규 등록');
+        $('#userForm')[0].reset();
+        $('#pregDateRange').addClass('d-none');
+    });
+</script>
+</body>
+</html>

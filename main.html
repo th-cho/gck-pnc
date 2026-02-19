@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공차 직영매장 근태관리 시스템</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+        :root {
+            --gongcha-red: #8B0029;
+            --gongcha-dark: #6e0021;
+            --text-black: #000000;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8f9fa;
+            color: var(--text-black);
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* 사이드바 스타일 */
+        #sidebar {
+            width: 260px;
+            min-height: 100vh;
+            background: #ffffff;
+            border-right: 1px solid #dee2e6;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+        }
+        #sidebar.collapsed {
+            width: 70px;
+        }
+
+        /* 사이드바 헤더 (축소 시 중앙 정렬 유지) */
+        #sidebar .sidebar-header {
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 64px;
+        }
+        #sidebar.collapsed .sidebar-header {
+            flex-direction: column;
+            padding: 1rem 0;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* 메뉴 링크 텍스트 색상 검은색 */
+        #sidebar .nav-link {
+            color: var(--text-black);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-radius: 0;
+            transition: 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        #sidebar.collapsed .nav-link {
+            justify-content: center;
+            padding: 12px 0;
+            gap: 0;
+        }
+
+        #sidebar .nav-link:hover {
+            background-color: #f8f9fa;
+            color: var(--gongcha-red);
+        }
+        #sidebar .nav-link.active {
+            background-color: var(--gongcha-red);
+            color: #ffffff !important;
+        }
+        #sidebar .nav-link i {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        /* 레이아웃 구조 */
+        .main-wrapper {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        header {
+            height: 64px;
+            background: white;
+            border-bottom: 1px solid #dee2e6;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            color: var(--text-black);
+        }
+        #page-content {
+            flex: 1;
+            overflow: hidden;
+            background-color: #f8f9fa;
+        }
+        #content-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* 네비게이션 헤더 */
+        .nav-header {
+            font-size: 10px;
+            font-weight: 700;
+            color: #888888;
+            padding: 15px 20px 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .collapsed .link-text, .collapsed .nav-header, .collapsed .sidebar-footer {
+            display: none;
+        }
+        .text-gongcha { color: var(--gongcha-red); }
+        .bg-gongcha { background-color: var(--gongcha-red); }
+
+        /* 로고 영역 스타일 - 클릭 가능하도록 수정 */
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+        #sidebar.collapsed .logo-area { justify-content: center; width: 100%; }
+
+        /* p-logo 클래스 정의 및 이미지 최적화 */
+        .p-logo {
+            height: 20px;
+            width: auto;
+            display: block;
+        }
+
+        /* 브레드크럼 활성 텍스트 색상 */
+        .breadcrumb-item.active {
+            color: var(--text-black) !important;
+        }
+
+        .p-symbol {
+            width: 30px;
+            height: auto;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body class="d-flex">
+
+<div class="main-wrapper">
+    <!-- 사이드바 메뉴 -->
+    <aside id="sidebar">
+        <div class="sidebar-header border-bottom">
+            <!-- 로고 클릭 시 dashboard.html 로드 기능 추가 -->
+            <div class="logo-area" onclick="loadPage('dashboard.html', document.querySelector('.nav-link[onclick*=\'dashboard.html\']'))">
+                <!-- 요청하신 인장형 심볼 -->
+                <img src="simbol.png" alt="GCK" class="p-symbol" style="width: 30px;">
+                <!-- 확장 시 워드마크 로고 -->
+                <span class="fw-bold text-gongcha fs-5 tracking-tighter link-text">근태관리시스템</span>
+            </div>
+            <button id="toggleSidebar" class="btn btn-link p-1 text-secondary">
+                <i data-lucide="menu"></i>
+            </button>
+        </div>
+
+        <div class="flex-grow-1 overflow-auto">
+            <!-- 기초 관리 그룹 -->
+            <div class="nav-header">기초 관리</div>
+            <nav class="nav flex-column">
+                <a class="nav-link" onclick="loadPage('shop.html', this)"><i data-lucide="store"></i> <span class="link-text">매장관리</span></a>
+                <a class="nav-link" onclick="loadPage('holiday.html', this)"><i data-lucide="calendar-days"></i> <span class="link-text">공휴일관리</span></a>
+                <a class="nav-link" onclick="loadPage('work_setting_regular.html', this)"><i data-lucide="calendar-check"></i> <span class="link-text">근무설정(정규직)</span></a>
+                <a class="nav-link" onclick="loadPage('work_setting_parttime.html', this)"><i data-lucide="user-check"></i> <span class="link-text">근무설정(파트타이머)</span></a>
+            </nav>
+
+            <!-- 근태 관리 그룹 -->
+            <div class="nav-header">근태 관리</div>
+            <nav class="nav flex-column">
+                <a class="nav-link active" onclick="loadPage('attendance_regular.html', this)"><i data-lucide="clock"></i> <span class="link-text">정규직 근태관리</span></a>
+                <a class="nav-link" onclick="loadPage('attendance_parttime.html', this)"><i data-lucide="user-plus"></i> <span class="link-text">파트타이머 근태관리</span></a>
+                <a class="nav-link" onclick="loadPage('attendance_confirm.html', this)"><i data-lucide="clipboard-check"></i> <span class="link-text">근태확정</span></a>
+            </nav>
+
+            <!-- 현황 관리 그룹 -->
+            <div class="nav-header">현황 관리</div>
+            <nav class="nav flex-column">
+                <a class="nav-link" onclick="loadPage('attendance_status.html', this)"><i data-lucide="bar-chart-3"></i> <span class="link-text">근태 현황 조회</span></a>
+            </nav>
+
+            <!-- 시스템 관리 그룹 -->
+            <div class="nav-header">시스템 관리</div>
+            <nav class="nav flex-column">
+                <a class="nav-link" onclick="loadPage('company.html', this)"><i data-lucide="settings"></i> <span class="link-text">회사정보관리</span></a>
+                <a class="nav-link" onclick="loadPage('common.html', this)"><i data-lucide="code"></i> <span class="link-text">공통코드관리</span></a>
+                <a class="nav-link" onclick="loadPage('program.html', this)"><i data-lucide="layout-grid"></i> <span class="link-text">프로그램정보</span></a>
+                <a class="nav-link" onclick="loadPage('menu.html', this)"><i data-lucide="menu"></i> <span class="link-text">메뉴관리</span></a>
+                <a class="nav-link" onclick="loadPage('user.html', this)"><i data-lucide="users"></i> <span class="link-text">사용자관리</span></a>
+                <a class="nav-link" onclick="loadPage('permission.html', this)"><i data-lucide="shield-check"></i> <span class="link-text">권한관리</span></a>
+            </nav>
+        </div>
+
+        <div class="p-3 border-top bg-light text-muted sidebar-footer text-center" style="font-size: 10px;">
+            © GONGCHA KOREA CO.,LTD ALL RIGHTS RESERVED.
+        </div>
+    </aside>
+
+    <!-- 메인 콘텐츠 영역 -->
+    <div class="main-content">
+        <!-- 상단 헤더 -->
+        <header>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0" id="breadcrumb-area" style="font-size: 13px;">
+                    <li class="breadcrumb-item text-muted" id="bc-category">근태 관리</li>
+                    <li class="breadcrumb-item active fw-bold" id="bc-menu">정규직 근태관리</li>
+                </ol>
+            </nav>
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end">
+                    <div class="fw-bold" style="font-size: 13px; color: var(--text-black);">박지홍 (점포관리자)</div>
+                    <div class="text-muted" style="font-size: 10px;">광복점 | S19080901</div>
+                </div>
+                <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center fw-bold text-secondary" style="width: 40px; height: 40px; cursor: pointer;">
+                    JH
+                </div>
+            </div>
+        </header>
+
+        <!-- iframe으로 페이지가 로드되는 영역 -->
+        <div id="page-content">
+            <iframe id="content-iframe" name="content-iframe" src="about:blank"></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+    /**
+     * 페이지 로드 함수 (Iframe 활용)
+     */
+    function loadPage(url, element) {
+        if (element) {
+            $('.nav-link').removeClass('active shadow-sm');
+            $(element).addClass('active shadow-sm');
+
+            const category = $(element).prevAll('.nav-header').first().text();
+            const menuName = $(element).find('.link-text').text();
+            $('#bc-category').text(category);
+            $('#bc-menu').text(menuName);
+        }
+        $('#content-iframe').attr('src', url);
+    }
+
+    $(document).ready(function() {
+        lucide.createIcons();
+        $('#toggleSidebar').on('click', function() {
+            $('#sidebar').toggleClass('collapsed');
+        });
+        loadPage('dashboard.html', $('.nav-link.active')[0]);
+    });
+</script>
+</body>
+</html>

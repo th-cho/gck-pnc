@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>공차 근태관리 - 정규직</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+    :root {
+      --gongcha-red: #8B0029;
+      --gongcha-dark: #6e0021;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    .btn-gongcha {
+      background-color: var(--gongcha-red);
+      color: white;
+      border: none;
+    }
+    .btn-gongcha:hover {
+      background-color: var(--gongcha-dark);
+      color: white;
+    }
+
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04);
+      margin-bottom: 1.5rem;
+    }
+
+    /* 근태 매트릭스 스타일 */
+    .matrix-container {
+      overflow-x: auto;
+      background: white;
+      border-radius: 8px;
+    }
+    .matrix-table {
+      font-size: 11px;
+      border-collapse: collapse;
+      width: 100%;
+      white-space: nowrap;
+    }
+    .matrix-table th, .matrix-table td {
+      border: 1px solid #dee2e6;
+      text-align: center;
+      padding: 6px 4px;
+    }
+    .matrix-table th {
+      background: #f8f9fa;
+      font-weight: bold;
+      color: #6c757d;
+    }
+    .matrix-table input {
+      width: 50px;
+      border: 1px solid #ddd;
+      text-align: center;
+      border-radius: 4px;
+      font-size: 10px;
+      padding: 2px;
+    }
+    .matrix-table input:focus {
+      border-color: var(--gongcha-red);
+      outline: none;
+      box-shadow: 0 0 0 0.2rem rgba(139, 0, 41, 0.1);
+    }
+
+    .calc-row { background: #fdf5f7 !important; font-weight: bold; color: var(--gongcha-red); }
+    .sat { color: #0d6efd; }
+    .sun { color: #dc3545; }
+
+    .alert-limit {
+      background: #fff4f4;
+      border-left: 4px solid var(--gongcha-red);
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .policy-guide {
+      font-size: 12px;
+      color: #6c757d;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid #ced4da;
+    }
+  </style>
+</head>
+<body>
+<div class="container-fluid">
+
+  <!-- 1. 주 52시간 실시간 모니터링 알림 -->
+  <div class="alert alert-limit p-3 mb-4 d-flex align-items-center justify-content-between shadow-sm">
+    <div>
+      <i data-lucide="alert-triangle" class="text-danger me-2" style="width:18px; vertical-align: middle;"></i>
+      <strong>주 52시간 관리 모니터링</strong>: 현재 선택된 직원의 주 누적 근로시간은 <span class="text-danger fw-bold">48.5시간</span> 입니다. (잔여 연장 가능: 3.5h)
+    </div>
+    <span class="badge bg-danger">임신기 단축근무 적용</span>
+  </div>
+
+  <!-- 2. 상단 조회 필터 -->
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-2">
+          <label class="form-label small fw-bold text-muted text-uppercase">대상월</label>
+          <input type="month" class="form-control form-control-sm border-secondary-subtle" value="2026-02">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-bold text-muted text-uppercase">매장명</label>
+          <select class="form-select form-select-sm border-secondary-subtle">
+            <option>광복점</option>
+            <option>강남본점</option>
+          </select>
+        </div>
+        <div class="col-md-7 d-flex justify-content-end gap-2">
+          <button class="btn btn-sm btn-light border px-4"><i data-lucide="rotate-ccw" class="me-1" style="width:14px;"></i>초기화</button>
+          <button class="btn btn-sm btn-gongcha px-4 shadow-sm"><i data-lucide="search" class="me-1" style="width:14px;"></i>조회</button>
+          <button class="btn btn-sm btn-gongcha px-4 shadow-sm"><i data-lucide="save" class="me-1" style="width:14px;"></i>일괄저장</button>
+          <button class="btn btn-sm btn-outline-danger px-3 shadow-sm">근태제출</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 근태 매트릭스 그리드 -->
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white p-3 border-bottom-0">
+      <div class="d-flex align-items-center gap-2">
+        <i data-lucide="calendar-check" class="text-danger" style="color:var(--gongcha-red) !important;"></i>
+        <h6 class="mb-0 fw-bold">정규직 일별 근태 입력 현황</h6>
+      </div>
+    </div>
+    <div class="matrix-container px-3 pb-3">
+      <table class="matrix-table">
+        <thead>
+        <tr>
+          <th rowspan="2" style="min-width: 80px;">성명</th>
+          <th rowspan="2" style="min-width: 80px;">직급</th>
+          <th rowspan="2" style="min-width: 60px;">항목</th>
+          <!-- 날짜 (예시로 일부만 표시) -->
+          <th>2/1</th><th>2/2</th><th>2/3</th><th>2/4</th><th>2/5</th><th>2/6</th><th class="sat">2/7</th><th class="sun">2/8</th>
+          <th>...</th>
+          <th class="sat">2/28</th>
+          <th rowspan="2" style="min-width: 70px;" class="bg-light">합계</th>
+        </tr>
+        <tr>
+          <!-- 요일 -->
+          <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th class="sat">토</th><th class="sun">일</th>
+          <th>...</th>
+          <th class="sat">토</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- 직원 1: 박지홍 -->
+        <tr>
+          <td rowspan="5" class="fw-bold bg-white">박지홍</td>
+          <td rowspan="5" class="bg-white small">점포관리자</td>
+          <td class="bg-light">출근</td>
+          <td><input type="text" value="09:00"></td><td><input type="text" value="09:00"></td><td><input type="text" value="09:00"></td><td><input type="text" value="09:00"></td><td><input type="text" value="09:00"></td><td><input type="text" value="09:00"></td><td>-</td><td>-</td><td>...</td><td>-</td>
+          <td class="bg-light fw-bold">-</td>
+        </tr>
+        <tr>
+          <td class="bg-light">퇴근</td>
+          <td><input type="text" value="22:30"></td><td><input type="text" value="18:00"></td><td><input type="text" value="18:00"></td><td><input type="text" value="18:00"></td><td><input type="text" value="18:00"></td><td><input type="text" value="18:00"></td><td>-</td><td>-</td><td>...</td><td>-</td>
+          <td class="bg-light fw-bold">-</td>
+        </tr>
+        <tr>
+          <td class="bg-light">휴게</td>
+          <td><input type="text" value="1.0"></td><td><input type="text" value="1.0"></td><td><input type="text" value="1.0"></td><td><input type="text" value="1.0"></td><td><input type="text" value="1.0"></td><td><input type="text" value="1.0"></td><td>-</td><td>-</td><td>...</td><td>-</td>
+          <td class="bg-light fw-bold">25.0</td>
+        </tr>
+        <tr class="calc-row">
+          <td>연장</td>
+          <td>4.5</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>...</td><td>0.0</td>
+          <td class="bg-light">12.5</td>
+        </tr>
+        <tr class="calc-row">
+          <td>심야</td>
+          <td>0.5</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>...</td><td>0.0</td>
+          <td class="bg-light">2.0</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. 정책 기반 정합성 가이드 -->
+  <div class="policy-guide shadow-sm">
+    <div class="d-flex align-items-center gap-2 mb-2">
+      <i data-lucide="info" style="width:16px;"></i>
+      <span class="fw-bold">월 근태 정합성 검증 안내</span>
+    </div>
+    <p class="mb-1">매장 정규직은 월 단위 정해진 휴일 수를 준수해야 하며, 아래 공식을 통해 정합성을 검증합니다.</p>
+    <code class="d-block p-2 bg-light rounded text-dark mt-2 border">
+      월 근무 기준시간 = 정근 - 휴근 - 연장 + 조퇴 + 지각 + ((연차 + 반차 + 반반차 + 결근일수) × 8h)
+    </code>
+    <p class="mt-2 mb-0 small text-muted">* 일 실제 근로 12시간 초과 또는 주 52시간 초과 시 시스템에서 저장이 차단될 수 있습니다.</p>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    // 아이콘 초기화
+    lucide.createIcons();
+
+    // 시간 입력 포커스 시 자동 선택 기능 (편의성)
+    $('.matrix-table input').on('focus', function() {
+      $(this).select();
+    });
+
+    // 입력값 변경 시 계산 시뮬레이션 (간단한 로그)
+    $('.matrix-table input').on('change', function() {
+      console.log('근태 데이터 변경됨: 정합성 재계산 필요');
+    });
+  });
+</script>
+</body>
+</html>

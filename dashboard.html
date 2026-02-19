@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>공차 근태관리 - 대시보드</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+    :root {
+      --gongcha-red: #8B0029;
+      --text-black: #000000;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f8f9fa;
+      padding: 24px;
+      color: var(--text-black);
+    }
+
+    .card {
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s;
+    }
+    .card:hover { transform: translateY(-2px); }
+
+    .stat-card {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .progress {
+      height: 8px;
+      border-radius: 4px;
+      background-color: #eee;
+    }
+
+    .text-gongcha { color: var(--gongcha-red); }
+    .bg-gongcha-light { background-color: rgba(139, 0, 41, 0.1); }
+
+    .notification-item {
+      padding: 12px;
+      border-bottom: 1px solid #f1f1f1;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .notification-item:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+<div class="container-fluid">
+  <h4 class="fw-bold mb-4">오늘의 매장 현황</h4>
+
+  <!-- 주요 지표 카드 -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="card stat-card h-100">
+        <div>
+          <div class="icon-box bg-gongcha-light text-gongcha">
+            <i data-lucide="users"></i>
+          </div>
+          <h6 class="text-muted fw-bold small uppercase">현재 근무 인원</h6>
+          <h2 class="fw-bold mb-0">8<span class="fs-6 fw-normal"> / 12명</span></h2>
+        </div>
+        <div class="mt-3 small text-success"><i data-lucide="arrow-up-right" style="width:14px;"></i> 전시간대 대비 +2</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card stat-card h-100">
+        <div>
+          <div class="icon-box bg-primary-subtle text-primary">
+            <i data-lucide="alert-circle"></i>
+          </div>
+          <h6 class="text-muted fw-bold small uppercase">정합성 오류 건수</h6>
+          <h2 class="fw-bold mb-0 text-danger">3<span class="fs-6 fw-normal text-muted">건</span></h2>
+        </div>
+        <div class="mt-3 small text-muted">미확정 제출건 포함</div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card stat-card h-100">
+        <div>
+          <div class="icon-box bg-success-subtle text-success">
+            <i data-lucide="check-square"></i>
+          </div>
+          <h6 class="text-muted fw-bold small uppercase">금월 근태 확정율</h6>
+          <h2 class="fw-bold mb-0">92<span class="fs-6 fw-normal">%</span></h2>
+        </div>
+        <div class="mt-3">
+          <div class="progress">
+            <div class="progress-bar bg-success" style="width: 92%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card stat-card h-100">
+        <div>
+          <div class="icon-box bg-warning-subtle text-warning">
+            <i data-lucide="clock-3"></i>
+          </div>
+          <h6 class="text-muted fw-bold small uppercase">평균 주간 근로시간</h6>
+          <h2 class="fw-bold mb-0">46.5<span class="fs-6 fw-normal">h</span></h2>
+        </div>
+        <div class="mt-3 small text-muted">법정 상한 52h 기준</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- 주 52시간 모니터링 (정규직) -->
+    <div class="col-xl-8">
+      <div class="card h-100">
+        <div class="card-header bg-white p-4 border-0 d-flex justify-content-between align-items-center">
+          <h6 class="fw-bold mb-0">인원별 주 누적 근로시간 (TOP 5)</h6>
+          <button class="btn btn-sm btn-light border">상세보기</button>
+        </div>
+        <div class="card-body p-4 pt-0">
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="small fw-bold">박지홍 (점장)</span>
+              <span class="small text-danger fw-bold">50.5 / 52h</span>
+            </div>
+            <div class="progress" style="height: 12px;">
+              <div class="progress-bar bg-danger" style="width: 97%"></div>
+            </div>
+          </div>
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="small fw-bold">김예지 (캡틴)</span>
+              <span class="small text-warning fw-bold">48.2 / 52h</span>
+            </div>
+            <div class="progress" style="height: 12px;">
+              <div class="progress-bar bg-warning" style="width: 92%"></div>
+            </div>
+          </div>
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="small fw-bold">최근태 (스탭)</span>
+              <span class="small text-success fw-bold">40.0 / 52h</span>
+            </div>
+            <div class="progress" style="height: 12px;">
+              <div class="progress-bar bg-success" style="width: 77%"></div>
+            </div>
+          </div>
+          <div class="mb-4">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="small fw-bold">이하늘 (스탭)</span>
+              <span class="small text-success fw-bold">38.5 / 52h</span>
+            </div>
+            <div class="progress" style="height: 12px;">
+              <div class="progress-bar bg-success" style="width: 74%"></div>
+            </div>
+          </div>
+          <div class="mb-0">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="small fw-bold">홍길동 (스탭)</span>
+              <span class="small text-muted fw-bold">32.0 / 52h</span>
+            </div>
+            <div class="progress" style="height: 12px;">
+              <div class="progress-bar bg-info" style="width: 61%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 최근 알림 / 이슈 -->
+    <div class="col-xl-4">
+      <div class="card h-100">
+        <div class="card-header bg-white p-4 border-0">
+          <h6 class="fw-bold mb-0">최근 근태 알림</h6>
+        </div>
+        <div class="card-body p-0">
+          <div class="notification-item">
+            <div class="rounded-circle p-2 bg-red-100 text-danger"><i data-lucide="shield-alert" style="width:16px;"></i></div>
+            <div>
+              <div class="small fw-bold">박지홍 - 주 52시간 근접</div>
+              <div class="text-muted" style="font-size:11px;">현재 50.5시간 누적. 추가 연장 자제 필요</div>
+            </div>
+          </div>
+          <div class="notification-item">
+            <div class="rounded-circle p-2 bg-amber-100 text-warning"><i data-lucide="user-minus" style="width:16px;"></i></div>
+            <div>
+              <div class="small fw-bold">이하늘 - 조퇴 발생</div>
+              <div class="text-muted" style="font-size:11px;">2026-02-19 14:00 병원 방문 사유</div>
+            </div>
+          </div>
+          <div class="notification-item">
+            <div class="rounded-circle p-2 bg-blue-100 text-blue-600"><i data-lucide="heart" style="width:16px;"></i></div>
+            <div>
+              <div class="small fw-bold">김예지 - 모성보호 적용</div>
+              <div class="text-muted" style="font-size:11px;">임신기 단축근무 시간 엄수 확인 요망</div>
+            </div>
+          </div>
+          <div class="notification-item">
+            <div class="rounded-circle p-2 bg-green-100 text-success"><i data-lucide="file-check" style="width:16px;"></i></div>
+            <div>
+              <div class="small fw-bold">광복점 - 전주 근태 승인 완료</div>
+              <div class="text-muted" style="font-size:11px;">본사(P&C)에서 최종 확정 처리가 완료되었습니다.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    lucide.createIcons();
+  });
+</script>
+</body>
+</html>

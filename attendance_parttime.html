@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>공차 근태관리 - 파트타이머</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+    :root {
+      --gongcha-red: #8B0029;
+      --gongcha-dark: #6e0021;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+
+    .btn-gongcha {
+      background-color: var(--gongcha-red);
+      color: white;
+      border: none;
+    }
+    .btn-gongcha:hover {
+      background-color: var(--gongcha-dark);
+      color: white;
+    }
+
+    .card {
+      border: none;
+      border-radius: 12px;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04);
+      margin-bottom: 1.5rem;
+    }
+
+    /* 근태 매트릭스 스타일 */
+    .matrix-container {
+      overflow-x: auto;
+      background: white;
+      border-radius: 8px;
+    }
+    .matrix-table {
+      font-size: 11px;
+      border-collapse: collapse;
+      width: 100%;
+      white-space: nowrap;
+    }
+    .matrix-table th, .matrix-table td {
+      border: 1px solid #dee2e6;
+      text-align: center;
+      padding: 6px 4px;
+    }
+    .matrix-table th {
+      background: #f8f9fa;
+      font-weight: bold;
+      color: #6c757d;
+    }
+    .matrix-table input {
+      width: 50px;
+      border: 1px solid #ddd;
+      text-align: center;
+      border-radius: 4px;
+      font-size: 10px;
+      padding: 2px;
+    }
+
+    /* 파트타이머 전용 스타일 */
+    .badge-15h {
+      background: #eef2ff;
+      color: #4338ca;
+      border: 1px solid #c7d2fe;
+      font-weight: bold;
+    }
+    .text-primary-custom { color: #0d6efd; font-weight: bold; }
+    .sat { color: #0d6efd; }
+    .sun { color: #dc3545; }
+    .highlight-row { background-color: #f8faff; }
+  </style>
+</head>
+<body>
+<div class="container-fluid">
+
+  <!-- 1. 파트타이머 정책 알림 -->
+  <div class="alert alert-info border-0 shadow-sm p-3 mb-4 d-flex align-items-center gap-2 small" style="background-color: #eef2ff; color: #4338ca; border-radius: 10px;">
+    <i data-lucide="info" style="width:16px;"></i>
+    <div>
+      <strong>파트타이머 관리 정책:</strong> 1주 소정근로 15시간 이상(단시간) 근로자는 주휴수당 및 공휴일 유급수당 발생 대상입니다. 15시간 미만(초단시간)은 제외됩니다.
+    </div>
+  </div>
+
+  <!-- 2. 조회 필터 -->
+  <div class="card shadow-sm">
+    <div class="card-body p-4">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-2">
+          <label class="form-label small fw-bold text-muted uppercase">근태년월</label>
+          <input type="month" class="form-control form-control-sm border-secondary-subtle" value="2026-02">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-bold text-muted uppercase">매장명</label>
+          <select class="form-select form-select-sm border-secondary-subtle">
+            <option>광복점</option>
+            <option>강남본점</option>
+          </select>
+        </div>
+        <div class="col-md-7 d-flex justify-content-end gap-2">
+          <button class="btn btn-sm btn-light border px-4"><i data-lucide="rotate-ccw" class="me-1" style="width:14px;"></i>초기화</button>
+          <button class="btn btn-sm btn-gongcha px-4 shadow-sm"><i data-lucide="search" class="me-1" style="width:14px;"></i>조회</button>
+          <button class="btn btn-sm btn-gongcha px-4 shadow-sm"><i data-lucide="save" class="me-1" style="width:14px;"></i>저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 근태 매트릭스 그리드 -->
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white p-3 border-bottom-0 d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <i data-lucide="users" class="text-danger" style="color:var(--gongcha-red) !important;"></i>
+        <h6 class="mb-0 fw-bold">파트타이머 일별 근태 입력 현황</h6>
+      </div>
+      <div class="badge badge-15h px-3 py-2 shadow-sm">
+        <i data-lucide="check-circle" class="me-1" style="width:12px;"></i> 주휴수당 자동판정 프로세스 가동중
+      </div>
+    </div>
+    <div class="matrix-container px-3 pb-3">
+      <table class="matrix-table">
+        <thead>
+        <tr>
+          <th rowspan="2" style="min-width: 80px;">성명</th>
+          <th rowspan="2" style="min-width: 80px;">구분</th>
+          <th rowspan="2" style="min-width: 60px;">항목</th>
+          <th>2/1</th><th>2/2</th><th>2/3</th><th>2/4</th><th>2/5</th><th>2/6</th><th class="sat">2/7</th><th class="sun">2/8</th>
+          <th>...</th>
+          <th rowspan="2" style="min-width: 70px;" class="bg-light">주간 합계</th>
+        </tr>
+        <tr>
+          <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th class="sat">토</th><th class="sun">일</th>
+          <th>...</th>
+        </tr>
+        </thead>
+        <tbody>
+        <!-- 파트타이머 1: 김하늘 (단시간) -->
+        <tr class="highlight-row">
+          <td rowspan="3" class="fw-bold bg-white">김하늘</td>
+          <td rowspan="3" class="bg-white"><span class="badge badge-15h">단시간</span></td>
+          <td class="bg-light">출근</td>
+          <td><input type="text" value="17:00"></td><td><input type="text" value="17:00"></td><td>-</td><td><input type="text" value="17:00"></td><td><input type="text" value="17:00"></td><td><input type="text" value="17:00"></td><td>-</td><td>-</td><td>...</td>
+          <td class="bg-light fw-bold">-</td>
+        </tr>
+        <tr class="highlight-row">
+          <td class="bg-light">퇴근</td>
+          <td><input type="text" value="22:30"></td><td><input type="text" value="22:00"></td><td>-</td><td><input type="text" value="22:00"></td><td><input type="text" value="22:00"></td><td><input type="text" value="22:00"></td><td>-</td><td>-</td><td>...</td>
+          <td class="bg-light fw-bold">-</td>
+        </tr>
+        <tr class="highlight-row">
+          <td class="bg-light">실근무</td>
+          <td>5.0</td><td>4.5</td><td>0</td><td>4.5</td><td>4.5</td><td>4.5</td><td>0</td><td>0</td><td>...</td>
+          <td class="bg-light fw-bold text-primary">23.0h ↑</td>
+        </tr>
+
+        <!-- 파트타이머 2: 이초단 (초단시간) -->
+        <tr>
+          <td rowspan="3" class="fw-bold bg-white">이초단</td>
+          <td rowspan="3" class="bg-white"><span class="badge bg-secondary-subtle text-secondary border">초단시간</span></td>
+          <td class="bg-light">출근</td>
+          <td>-</td><td><input type="text" value="10:00"></td><td>-</td><td>-</td><td><input type="text" value="10:00"></td><td>-</td><td>-</td><td>-</td><td>...</td>
+          <td class="bg-light fw-bold">-</td>
+        </tr>
+        <tr>
+          <td class="bg-light">퇴근</td>
+          <td>-</td><td><input type="text" value="14:00"></td><td>-</td><td>-</td><td><input type="text" value="14:00"></td><td>-</td><td>-</td><td>-</td><td>...</td>
+          <td class="bg-light fw-bold">-</td>
+        </tr>
+        <tr>
+          <td class="bg-light">실근무</td>
+          <td>0</td><td>4.0</td><td>0</td><td>0</td><td>4.0</td><td>0</td><td>0</td><td>0</td><td>...</td>
+          <td class="bg-light fw-bold text-muted">8.0h</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. 하단 안내문 -->
+  <div class="mt-2 px-2">
+    <p class="text-muted" style="font-size: 11px;">
+      <i data-lucide="help-circle" class="me-1" style="width:12px; vertical-align: middle;"></i>
+      실근무 시간은 [퇴근 - 출근 - 휴게시간]으로 자동 계산되며, 근로기준법에 따라 4시간 근무 시 30분 무급 휴게가 자동 차감될 수 있습니다.
+    </p>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function() {
+    // Lucide 아이콘 초기화
+    lucide.createIcons();
+
+    // 입력 필드 자동 선택
+    $('.matrix-table input').on('focus', function() {
+      $(this).select();
+    });
+
+    // 데이터 변경 이벤트 (로그 시뮬레이션)
+    $('.matrix-table input').on('change', function() {
+      const val = $(this).val();
+      console.log('근무 시간 수정됨:', val);
+      // 여기에 실시간 합계 계산 로직 추가 가능
+    });
+  });
+</script>
+</body>
+</html>
