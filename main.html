@@ -149,7 +149,6 @@
             display: block;
         }
 
-        /* 브레드크럼 활성 텍스트 색상 */
         .breadcrumb-item.active {
             color: var(--text-black) !important;
         }
@@ -167,11 +166,8 @@
     <!-- 사이드바 메뉴 -->
     <aside id="sidebar">
         <div class="sidebar-header border-bottom">
-            <!-- 로고 클릭 시 dashboard.html 로드 기능 추가 -->
             <div class="logo-area" onclick="loadPage('dashboard.html', document.querySelector('.nav-link[onclick*=\'dashboard.html\']'))">
-                <!-- 요청하신 인장형 심볼 -->
                 <img src="simbol.png" alt="GCK" class="p-symbol" style="width: 30px;">
-                <!-- 확장 시 워드마크 로고 -->
                 <span class="fw-bold text-gongcha fs-5 tracking-tighter link-text">근태관리시스템</span>
             </div>
             <button id="toggleSidebar" class="btn btn-link p-1 text-secondary">

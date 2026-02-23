@@ -2,34 +2,104 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>권한 관리 - 공차 직영매장 근태관리 시스템</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Common CSS -->
     <link href="common.css" rel="stylesheet">
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- AG Grid -->
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
     <style>
         body { padding: 20px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04); }
+
+        /* AG Grid 커스텀 스타일 */
+        .ag-theme-alpine {
+            --ag-header-height: 40px;
+            --ag-row-height: 40px;
+            --ag-font-size: 12px;
+            --ag-header-background-color: #f8f9fa;
+            --ag-odd-row-background-color: #ffffff;
+            --ag-border-color: #dee2e6;
+        }
+        .ag-header-cell-label { justify-content: center; }
+        .ag-cell { display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 <div class="container-fluid">
-    <div class="card mb-4 p-3">
+    <div class="card mb-4 p-4">
         <div class="row g-3 align-items-end">
-            <div class="col-md-4"><select class="form-select form-select-sm"><option>시스템관리자</option><option>매장관리자</option></select></div>
-            <div class="col-md-8 d-flex justify-content-end gap-2"><button class="btn btn-sm btn-gongcha px-4">조회</button><button class="btn btn-sm btn-gongcha px-4">저장</button></div>
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted">권한 그룹 선택</label>
+                <select class="form-select form-select-sm border-secondary-subtle">
+                    <option>시스템관리자</option>
+                    <option>매장관리자</option>
+                    <option>일반사용자</option>
+                </select>
+            </div>
+            <div class="col-md-8 d-flex justify-content-end gap-2">
+                <button class="btn btn-sm btn-light border px-4"><i data-lucide="rotate-ccw" class="me-1" style="width:14px;"></i>초기화</button>
+                <button class="btn btn-sm btn-gongcha px-4 shadow-sm"><i data-lucide="search" class="me-1" style="width:14px;"></i>조회</button>
+                <button class="btn btn-sm btn-gongcha px-4 shadow-sm"><i data-lucide="save" class="me-1" style="width:14px;"></i>저장</button>
+            </div>
         </div>
     </div>
-    <div class="card p-3">
-        <h6 class="fw-bold mb-3">프로그램 권한설정</h6>
-        <table class="table table-sm">
-            <thead><tr class="table-light"><th>ID</th><th>프로그램명</th><th>권한</th><th>조회</th><th>저장</th></tr></thead>
-            <tbody>
-            <tr><td>SY10010</td><td>회사정보관리</td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td></tr>
-            <tr><td>AT10010</td><td>근태입력</td><td><input type="checkbox" checked></td><td><input type="checkbox" checked></td><td><input type="checkbox"></td></tr>
-            </tbody>
-        </table>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white p-3 border-bottom-0">
+            <div class="d-flex align-items-center gap-2">
+                <i data-lucide="shield-check" class="text-danger" style="color:var(--gongcha-red) !important;"></i>
+                <h6 class="mb-0 fw-bold">프로그램별 권한 설정</h6>
+            </div>
+        </div>
+        <div id="myGrid" class="ag-theme-alpine" style="height: 500px; width: 100%;"></div>
     </div>
 </div>
-<script>lucide.createIcons();</script>
+
+<script>
+    $(document).ready(function() {
+        lucide.createIcons();
+
+        const columnDefs = [
+            { field: "id", headerName: "프로그램 ID", width: 150, pinned: 'left', cellStyle: { 'font-weight': 'bold', 'color': '#8B0029' } },
+            { field: "name", headerName: "프로그램명", width: 200, pinned: 'left' },
+            { field: "access", headerName: "접근권한", width: 100, cellRenderer: checkboxRenderer },
+            { field: "read", headerName: "조회", width: 100, cellRenderer: checkboxRenderer },
+            { field: "write", headerName: "저장/수정", width: 100, cellRenderer: checkboxRenderer },
+            { field: "delete", headerName: "삭제", width: 100, cellRenderer: checkboxRenderer },
+            { field: "print", headerName: "출력/엑셀", width: 100, cellRenderer: checkboxRenderer }
+        ];
+
+        function checkboxRenderer(params) {
+            return `<input type="checkbox" class="form-check-input" ${params.value ? 'checked' : ''} onclick="return false;">`;
+        }
+
+        const rowData = [
+            { id: "SY10010", name: "회사정보관리", access: true, read: true, write: true, delete: false, print: true },
+            { id: "AT10010", name: "근태입력(정규직)", access: true, read: true, write: true, delete: true, print: true },
+            { id: "AT10020", name: "근태입력(파트)", access: true, read: true, write: true, delete: true, print: true },
+            { id: "ST10010", name: "근태현황조회", access: true, read: true, write: false, delete: false, print: true }
+        ];
+
+        const gridOptions = {
+            columnDefs: columnDefs,
+            rowData: rowData,
+            defaultColDef: {
+                resizable: true,
+                sortable: true,
+                filter: true
+            }
+        };
+
+        const gridDiv = document.querySelector('#myGrid');
+        agGrid.createGrid(gridDiv, gridOptions);
+    });
+</script>
 </body>
 </html>

@@ -2,70 +2,110 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>근태 확정 - 공차 직영매장 근태관리 시스템</title>
+  <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Common CSS -->
   <link href="common.css" rel="stylesheet">
+  <!-- jQuery -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- AG Grid -->
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
   <style>
     body { padding: 20px; }
+    .card { border: none; border-radius: 12px; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04); }
+
+    /* AG Grid 커스텀 스타일 */
+    .ag-theme-alpine {
+      --ag-header-height: 40px;
+      --ag-row-height: 40px;
+      --ag-font-size: 12px;
+      --ag-header-background-color: #f8f9fa;
+      --ag-odd-row-background-color: #ffffff;
+      --ag-border-color: #dee2e6;
+    }
+    .ag-header-cell-label { justify-content: center; }
+    .ag-cell { display: flex; align-items: center; justify-content: center; }
   </style>
 </head>
 <body>
 <div class="container-fluid">
   <div class="card mb-4 p-4 border-0 shadow-sm">
     <div class="row g-3 align-items-end">
-      <div class="col-md-3"><label class="form-label small fw-bold text-muted">대상월</label><input type="month" class="form-control form-control-sm" value="2026-02"></div>
-      <div class="col-md-9 d-flex justify-content-end gap-2"><button class="btn btn-sm btn-gongcha px-4">제출 현황 조회</button></div>
-    </div>
-  </div>
-
-  <div class="row g-4">
-    <div class="col-12">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center">
-          <h6 class="mb-0 fw-bold">매장별 근태 제출 및 확정 현황 (P&C 본사 전용)</h6>
-          <button class="btn btn-sm btn-success px-3 shadow-sm"><i data-lucide="check-check" style="width:14px;"></i> 일괄 승인</button>
-        </div>
-        <div class="table-responsive">
-          <table class="table table-hover align-middle mb-0 text-center">
-            <thead>
-            <tr>
-              <th>매장명</th>
-              <th>인원(정/파)</th>
-              <th>제출일시</th>
-              <th>정합성 여부</th>
-              <th>주 52h 위반</th>
-              <th>상태</th>
-              <th>작업</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-              <td class="fw-bold">광복점</td>
-              <td>5 / 12</td>
-              <td>2026-02-18 14:20</td>
-              <td><span class="text-success fw-bold">일치</span></td>
-              <td><span class="text-muted">-</span></td>
-              <td><span class="badge bg-warning shadow-sm">검토중</span></td>
-              <td><button class="btn btn-xs btn-gongcha py-1" style="font-size:10px;">상세조회/확정</button></td>
-            </tr>
-            <tr>
-              <td class="fw-bold">강남본점</td>
-              <td>8 / 20</td>
-              <td>2026-02-19 10:05</td>
-              <td><span class="text-danger fw-bold">불일치(-8h)</span></td>
-              <td><span class="text-danger fw-bold">1건</span></td>
-              <td><span class="badge bg-secondary shadow-sm">대기</span></td>
-              <td><button class="btn btn-xs btn-light border py-1" style="font-size:10px;">반려</button></td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-bold text-muted">대상월</label>
+        <input type="month" class="form-control form-control-sm border-secondary-subtle" value="2026-02">
+      </div>
+      <div class="col-md-9 d-flex justify-content-end gap-2">
+        <button class="btn btn-sm btn-gongcha px-4 shadow-sm"><i data-lucide="search" class="me-1" style="width:14px;"></i>제출 현황 조회</button>
       </div>
     </div>
   </div>
+
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center border-bottom-0">
+      <div class="d-flex align-items-center gap-2">
+        <i data-lucide="clipboard-check" class="text-danger" style="color:var(--gongcha-red) !important;"></i>
+        <h6 class="mb-0 fw-bold">매장별 근태 제출 및 확정 현황 (P&C 본사 전용)</h6>
+      </div>
+      <button class="btn btn-sm btn-success px-3 shadow-sm"><i data-lucide="check-check" style="width:14px;"></i> 일괄 승인</button>
+    </div>
+    <div id="myGrid" class="ag-theme-alpine" style="height: 500px; width: 100%;"></div>
+  </div>
 </div>
-<script>lucide.createIcons();</script>
+
+<script>
+  $(document).ready(function() {
+    lucide.createIcons();
+
+    const columnDefs = [
+      { field: "storeName", headerName: "매장명", width: 150, pinned: 'left', cellStyle: { 'font-weight': 'bold' } },
+      { field: "personnel", headerName: "인원(정/파)", width: 120 },
+      { field: "submitTime", headerName: "제출일시", width: 180 },
+      { field: "consistency", headerName: "정합성 여부", width: 150, cellRenderer: params => {
+          if (params.value === '일치') return '<span class="text-success fw-bold">일치</span>';
+          return `<span class="text-danger fw-bold">${params.value}</span>`;
+      }},
+      { field: "violation52h", headerName: "주 52h 위반", width: 120, cellRenderer: params => {
+          if (params.value === '-') return '<span class="text-muted">-</span>';
+          return `<span class="text-danger fw-bold">${params.value}</span>`;
+      }},
+      { field: "status", headerName: "상태", width: 120, cellRenderer: params => {
+          if (params.value === '검토중') return '<span class="badge bg-warning shadow-sm text-dark">검토중</span>';
+          if (params.value === '대기') return '<span class="badge bg-secondary shadow-sm">대기</span>';
+          if (params.value === '확정') return '<span class="badge bg-success shadow-sm">확정</span>';
+          return params.value;
+      }},
+      { field: "action", headerName: "작업", width: 150, cellRenderer: params => {
+          if (params.data.status === '검토중') return '<button class="btn btn-xs btn-gongcha py-1" style="font-size:10px;">상세조회/확정</button>';
+          if (params.data.status === '대기') return '<button class="btn btn-xs btn-light border py-1" style="font-size:10px;">반려</button>';
+          return '';
+      }}
+    ];
+
+    const rowData = [
+      { storeName: "광복점", personnel: "5 / 12", submitTime: "2026-02-18 14:20", consistency: "일치", violation52h: "-", status: "검토중" },
+      { storeName: "강남본점", personnel: "8 / 20", submitTime: "2026-02-19 10:05", consistency: "불일치(-8h)", violation52h: "1건", status: "대기" },
+      { storeName: "홍대점", personnel: "6 / 15", submitTime: "2026-02-20 09:00", consistency: "일치", violation52h: "-", status: "확정" }
+    ];
+
+    const gridOptions = {
+      columnDefs: columnDefs,
+      rowData: rowData,
+      defaultColDef: {
+        resizable: true,
+        sortable: true,
+        filter: true
+      },
+      rowHeight: 50
+    };
+
+    const gridDiv = document.querySelector('#myGrid');
+    agGrid.createGrid(gridDiv, gridOptions);
+  });
+</script>
 </body>
 </html>

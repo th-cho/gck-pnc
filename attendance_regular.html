@@ -12,6 +12,8 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- AG Grid -->
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
   <style>
     body {
       padding: 20px;
@@ -20,46 +22,6 @@
     .card {
       margin-bottom: 1.5rem;
     }
-
-    /* 근태 매트릭스 스타일 */
-    .matrix-container {
-      overflow-x: auto;
-      background: white;
-      border-radius: 8px;
-    }
-    .matrix-table {
-      font-size: 11px;
-      border-collapse: collapse;
-      width: 100%;
-      white-space: nowrap;
-    }
-    .matrix-table th, .matrix-table td {
-      border: 1px solid #dee2e6;
-      text-align: center;
-      padding: 6px 4px;
-    }
-    .matrix-table th {
-      background: #f8f9fa;
-      font-weight: bold;
-      color: #6c757d;
-    }
-    .matrix-table input {
-      width: 50px;
-      border: 1px solid #ddd;
-      text-align: center;
-      border-radius: 4px;
-      font-size: 10px;
-      padding: 2px;
-    }
-    .matrix-table input:focus {
-      border-color: var(--gongcha-red);
-      outline: none;
-      box-shadow: 0 0 0 0.2rem rgba(139, 0, 41, 0.1);
-    }
-
-    .calc-row { background: #fdf5f7 !important; font-weight: bold; color: var(--gongcha-red); }
-    .sat { color: #0d6efd; }
-    .sun { color: #dc3545; }
 
     .alert-limit {
       background: #fff4f4;
@@ -76,6 +38,33 @@
       border-radius: 8px;
       border-left: 4px solid #ced4da;
     }
+
+    /* AG Grid 커스텀 스타일 */
+    .ag-theme-alpine {
+      --ag-header-height: 40px;
+      --ag-row-height: 40px;
+      --ag-font-size: 12px;
+      --ag-header-background-color: #f8f9fa;
+      --ag-odd-row-background-color: #ffffff;
+      --ag-border-color: #dee2e6;
+    }
+
+    .ag-header-cell-label {
+      justify-content: center;
+    }
+
+    .ag-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 주말 색상 */
+    .sat-col { color: #0d6efd; font-weight: bold; }
+    .sun-col { color: #dc3545; font-weight: bold; }
+
+    /* 합계 컬럼 강조 */
+    .total-col { background-color: #fdf5f7 !important; font-weight: bold; color: var(--gongcha-red); }
   </style>
 </head>
 <body>
@@ -115,7 +104,7 @@
     </div>
   </div>
 
-  <!-- 3. 근태 매트릭스 그리드 -->
+  <!-- 3. 근태 매트릭스 그리드 (AG Grid) -->
   <div class="card shadow-sm border-0">
     <div class="card-header bg-white p-3 border-bottom-0">
       <div class="d-flex align-items-center gap-2">
@@ -123,62 +112,11 @@
         <h6 class="mb-0 fw-bold">정규직 일별 근태 입력 현황</h6>
       </div>
     </div>
-    <div class="matrix-container px-3 pb-3">
-      <table class="matrix-table">
-        <thead>
-        <tr>
-          <th rowspan="2" style="min-width: 80px;">성명</th>
-          <th rowspan="2" style="min-width: 80px;">직급</th>
-          <th rowspan="2" style="min-width: 60px;">항목</th>
-          <!-- 날짜 (예시로 일부만 표시) -->
-          <th>2/1</th><th>2/2</th><th>2/3</th><th>2/4</th><th>2/5</th><th>2/6</th><th class="sat">2/7</th><th class="sun">2/8</th>
-          <th>...</th>
-          <th class="sat">2/28</th>
-          <th rowspan="2" style="min-width: 70px;" class="bg-light">합계</th>
-        </tr>
-        <tr>
-          <!-- 요일 -->
-          <th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th class="sat">토</th><th class="sun">일</th>
-          <th>...</th>
-          <th class="sat">토</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- 직원 1: 박지홍 -->
-        <tr>
-          <td rowspan="5" class="fw-bold bg-white">박지홍</td>
-          <td rowspan="5" class="bg-white small">점포관리자</td>
-          <td class="bg-light">출근</td>
-          <td><input type="text" value="09:00"></td><td><input type="text" value="09:00"></td><td><input type="text" value="09:00"></td><td><input type="text" value="09:00"></td><td><input type="text" value="09:00"></td><td><input type="text" value="09:00"></td><td>-</td><td>-</td><td>...</td><td>-</td>
-          <td class="bg-light fw-bold">-</td>
-        </tr>
-        <tr>
-          <td class="bg-light">퇴근</td>
-          <td><input type="text" value="22:30"></td><td><input type="text" value="18:00"></td><td><input type="text" value="18:00"></td><td><input type="text" value="18:00"></td><td><input type="text" value="18:00"></td><td><input type="text" value="18:00"></td><td>-</td><td>-</td><td>...</td><td>-</td>
-          <td class="bg-light fw-bold">-</td>
-        </tr>
-        <tr>
-          <td class="bg-light">휴게</td>
-          <td><input type="text" value="1.0"></td><td><input type="text" value="1.0"></td><td><input type="text" value="1.0"></td><td><input type="text" value="1.0"></td><td><input type="text" value="1.0"></td><td><input type="text" value="1.0"></td><td>-</td><td>-</td><td>...</td><td>-</td>
-          <td class="bg-light fw-bold">25.0</td>
-        </tr>
-        <tr class="calc-row">
-          <td>연장</td>
-          <td>4.5</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>...</td><td>0.0</td>
-          <td class="bg-light">12.5</td>
-        </tr>
-        <tr class="calc-row">
-          <td>심야</td>
-          <td>0.5</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>...</td><td>0.0</td>
-          <td class="bg-light">2.0</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+    <div id="myGrid" class="ag-theme-alpine" style="height: 400px; width: 100%;"></div>
   </div>
 
   <!-- 4. 정책 기반 정합성 가이드 -->
-  <div class="policy-guide shadow-sm">
+  <div class="policy-guide shadow-sm mt-3">
     <div class="d-flex align-items-center gap-2 mb-2">
       <i data-lucide="info" style="width:16px;"></i>
       <span class="fw-bold">월 근태 정합성 검증 안내</span>
@@ -193,18 +131,69 @@
 
 <script>
   $(document).ready(function() {
-    // 아이콘 초기화
     lucide.createIcons();
 
-    // 시간 입력 포커스 시 자동 선택 기능 (편의성)
-    $('.matrix-table input').on('focus', function() {
-      $(this).select();
-    });
+    // AG Grid 설정
+    const columnDefs = [
+      { field: "name", headerName: "성명", width: 80, pinned: 'left', cellStyle: { 'font-weight': 'bold' } },
+      { field: "position", headerName: "직급", width: 80, pinned: 'left' },
+      { field: "type", headerName: "항목", width: 80, pinned: 'left', cellStyle: { 'background-color': '#f8f9fa' } },
+      // 날짜 컬럼 생성 (2월 1일 ~ 2월 28일 예시)
+      ...Array.from({ length: 28 }, (_, i) => {
+        const day = i + 1;
+        const date = new Date(2026, 1, day); // 2026년 2월
+        const dayOfWeek = date.getDay(); // 0:일, 6:토
+        let headerClass = '';
 
-    // 입력값 변경 시 계산 시뮬레이션 (간단한 로그)
-    $('.matrix-table input').on('change', function() {
-      console.log('근태 데이터 변경됨: 정합성 재계산 필요');
-    });
+        if (dayOfWeek === 0) headerClass = 'sun-col';
+        else if (dayOfWeek === 6) headerClass = 'sat-col';
+
+        return {
+          field: `d${day}`,
+          headerName: `${day}일`,
+          width: 60,
+          editable: true,
+          headerClass: headerClass,
+          cellStyle: params => {
+             if (dayOfWeek === 0) return { color: '#dc3545' };
+             if (dayOfWeek === 6) return { color: '#0d6efd' };
+             return null;
+          }
+        };
+      }),
+      { field: "total", headerName: "합계", width: 80, pinned: 'right', cellClass: 'total-col' }
+    ];
+
+    const rowData = [
+      { name: "박지홍", position: "점포관리자", type: "출근", d1: "09:00", d2: "09:00", d3: "09:00", d4: "09:00", d5: "09:00", d6: "09:00", total: "-" },
+      { name: "박지홍", position: "점포관리자", type: "퇴근", d1: "22:30", d2: "18:00", d3: "18:00", d4: "18:00", d5: "18:00", d6: "18:00", total: "-" },
+      { name: "박지홍", position: "점포관리자", type: "휴게", d1: "1.0", d2: "1.0", d3: "1.0", d4: "1.0", d5: "1.0", d6: "1.0", total: "25.0" },
+      { name: "박지홍", position: "점포관리자", type: "연장", d1: "4.5", d2: "0.0", d3: "0.0", d4: "0.0", d5: "0.0", d6: "0.0", total: "12.5" },
+      { name: "박지홍", position: "점포관리자", type: "심야", d1: "0.5", d2: "0.0", d3: "0.0", d4: "0.0", d5: "0.0", d6: "0.0", total: "2.0" },
+
+      // 추가 데이터 예시
+      { name: "김철수", position: "매니저", type: "출근", d1: "09:00", d2: "09:00", d3: "09:00", d4: "09:00", d5: "09:00", d6: "09:00", total: "-" },
+      { name: "김철수", position: "매니저", type: "퇴근", d1: "18:00", d2: "18:00", d3: "18:00", d4: "18:00", d5: "18:00", d6: "18:00", total: "-" },
+    ];
+
+    const gridOptions = {
+      columnDefs: columnDefs,
+      rowData: rowData,
+      defaultColDef: {
+        resizable: true,
+        sortable: false,
+        filter: false
+      },
+      getRowStyle: params => {
+        if (params.data.type === '연장' || params.data.type === '심야') {
+          return { background: '#fdf5f7', fontWeight: 'bold', color: '#8B0029' };
+        }
+      }
+    };
+
+    const gridDiv = document.querySelector('#myGrid');
+    // AG Grid v30+ 변경된 초기화 방식 적용
+    agGrid.createGrid(gridDiv, gridOptions);
   });
 </script>
 </body>

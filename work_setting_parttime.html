@@ -12,18 +12,41 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- AG Grid -->
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
   <style>
     body {
       padding: 20px;
     }
 
     .card { border: none; border-radius: 12px; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04); }
-    .table thead th { border-top: none; }
 
     .badge-parttimer {
       background-color: #e7f3ff;
       color: #0056b3;
       font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    /* AG Grid 커스텀 스타일 */
+    .ag-theme-alpine {
+      --ag-header-height: 40px;
+      --ag-row-height: 40px;
+      --ag-font-size: 12px;
+      --ag-header-background-color: #f8f9fa;
+      --ag-odd-row-background-color: #ffffff;
+      --ag-border-color: #dee2e6;
+    }
+
+    .ag-header-cell-label {
+      justify-content: center;
+    }
+
+    .ag-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   </style>
 </head>
@@ -67,59 +90,53 @@
       </div>
       <button class="btn btn-sm btn-gongcha px-3 shadow-sm"><i data-lucide="save" style="width:14px; margin-right:4px;"></i>저장</button>
     </div>
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0 text-center" style="min-width: 1000px;">
-        <thead>
-        <tr>
-          <th style="width: 50px;">NO</th>
-          <th>구분</th>
-          <th>사번</th>
-          <th>성명</th>
-          <th>근무요일</th>
-          <th style="width: 100px;">출근</th>
-          <th style="width: 100px;">퇴근</th>
-          <th style="width: 80px;">휴게(h)</th>
-          <th style="width: 80px;">일근무(h)</th>
-          <th style="width: 100px;">주합계(h)</th>
-          <th>주휴수당</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-          <td class="text-muted small">1</td>
-          <td><span class="badge badge-parttimer">단시간</span></td>
-          <td class="fw-bold text-gongcha">P24082201</td>
-          <td>김하늘</td>
-          <td><input type="text" class="form-control form-control-sm mx-auto" value="월,화,수,목,금" style="width: 150px;"></td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="17:00" style="width: 70px;"></td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="22:30" style="width: 70px;"></td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="0.5" style="width: 50px;"></td>
-          <td class="fw-bold">5.0</td>
-          <td class="text-primary fw-bold">25.0</td>
-          <td class="small text-success fw-bold">발생(대상)</td>
-        </tr>
-        <tr>
-          <td class="text-muted small">2</td>
-          <td><span class="badge bg-light text-dark border">초단시간</span></td>
-          <td class="fw-bold text-gongcha">P25012503</td>
-          <td>이초단</td>
-          <td><input type="text" class="form-control form-control-sm mx-auto" value="토,일" style="width: 150px;"></td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="10:00" style="width: 70px;"></td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="14:00" style="width: 70px;"></td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="0.0" style="width: 50px;"></td>
-          <td class="fw-bold">4.0</td>
-          <td class="text-muted">8.0</td>
-          <td class="small text-muted">미발생</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+    <div id="myGrid" class="ag-theme-alpine" style="height: 400px; width: 100%;"></div>
   </div>
 </div>
 
 <script>
   $(document).ready(function() {
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    lucide.createIcons();
+
+    const columnDefs = [
+      { field: "no", headerName: "NO", width: 60, pinned: 'left' },
+      { field: "type", headerName: "구분", width: 100, cellRenderer: params => {
+          if (params.value === '단시간') return '<span class="badge-parttimer">단시간</span>';
+          if (params.value === '초단시간') return '<span class="badge bg-light text-dark border">초단시간</span>';
+          return params.value;
+      }},
+      { field: "id", headerName: "사번", width: 100, cellStyle: { 'font-weight': 'bold', 'color': '#8B0029' } },
+      { field: "name", headerName: "성명", width: 100 },
+      { field: "workDays", headerName: "근무요일", width: 150, editable: true },
+      { field: "startTime", headerName: "출근", width: 100, editable: true },
+      { field: "endTime", headerName: "퇴근", width: 100, editable: true },
+      { field: "breakTime", headerName: "휴게(h)", width: 80, editable: true },
+      { field: "dailyWorkTime", headerName: "일근무(h)", width: 100, cellStyle: { 'font-weight': 'bold' } },
+      { field: "weeklyWorkTime", headerName: "주합계(h)", width: 100, cellStyle: params => {
+          return params.value >= 15 ? { 'color': '#0d6efd', 'font-weight': 'bold' } : { 'color': '#6c757d' };
+      }},
+      { field: "holidayAllowance", headerName: "주휴수당", width: 100, cellStyle: params => {
+          return params.value === '발생(대상)' ? { 'color': '#198754', 'font-weight': 'bold' } : { 'color': '#6c757d' };
+      }}
+    ];
+
+    const rowData = [
+      { no: 1, type: "단시간", id: "P24082201", name: "김하늘", workDays: "월,화,수,목,금", startTime: "17:00", endTime: "22:30", breakTime: "0.5", dailyWorkTime: "5.0", weeklyWorkTime: 25.0, holidayAllowance: "발생(대상)" },
+      { no: 2, type: "초단시간", id: "P25012503", name: "이초단", workDays: "토,일", startTime: "10:00", endTime: "14:00", breakTime: "0.0", dailyWorkTime: "4.0", weeklyWorkTime: 8.0, holidayAllowance: "미발생" }
+    ];
+
+    const gridOptions = {
+      columnDefs: columnDefs,
+      rowData: rowData,
+      defaultColDef: {
+        resizable: true,
+        sortable: true,
+        filter: true
+      }
+    };
+
+    const gridDiv = document.querySelector('#myGrid');
+    agGrid.createGrid(gridDiv, gridOptions);
   });
 </script>
 </body>

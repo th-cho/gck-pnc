@@ -2,34 +2,100 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>매장 관리 - 공차 직영매장 근태관리 시스템</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Common CSS -->
     <link href="common.css" rel="stylesheet">
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- AG Grid -->
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
     <style>
         body { padding: 20px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04); }
+
+        /* AG Grid 커스텀 스타일 */
+        .ag-theme-alpine {
+            --ag-header-height: 40px;
+            --ag-row-height: 40px;
+            --ag-font-size: 12px;
+            --ag-header-background-color: #f8f9fa;
+            --ag-odd-row-background-color: #ffffff;
+            --ag-border-color: #dee2e6;
+        }
+        .ag-header-cell-label { justify-content: center; }
+        .ag-cell { display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 <div class="container-fluid">
-    <div class="card mb-4 p-3">
+    <div class="card mb-4 p-4">
         <div class="row g-3 align-items-end">
-            <div class="col-md-8"><input type="text" class="form-control form-control-sm" placeholder="매장코드 또는 매장명"></div>
-            <div class="col-md-4 d-flex justify-content-end gap-2"><button class="btn btn-sm btn-gongcha px-4">조회</button><button class="btn btn-sm btn-gongcha px-4">저장</button></div>
+            <div class="col-md-8">
+                <label class="form-label small fw-bold text-muted">매장 검색</label>
+                <input type="text" class="form-control form-control-sm border-secondary-subtle" placeholder="매장코드 또는 매장명을 입력하세요">
+            </div>
+            <div class="col-md-4 d-flex justify-content-end gap-2">
+                <button class="btn btn-sm btn-light border px-4"><i data-lucide="rotate-ccw" class="me-1" style="width:14px;"></i>초기화</button>
+                <button class="btn btn-sm btn-gongcha px-4 shadow-sm"><i data-lucide="search" class="me-1" style="width:14px;"></i>조회</button>
+                <button class="btn btn-sm btn-gongcha px-4 shadow-sm"><i data-lucide="save" class="me-1" style="width:14px;"></i>저장</button>
+            </div>
         </div>
     </div>
-    <div class="card p-3">
-        <h6 class="fw-bold mb-3">매장 목록</h6>
-        <table class="table table-hover table-sm">
-            <thead><tr class="table-light"><th>코드</th><th>매장명</th><th>담당자</th><th>지역</th><th>상태</th></tr></thead>
-            <tbody>
-            <tr><td>000004</td><td>공차 홍대점</td><td>공은옥</td><td>서울</td><td><span class="badge bg-success">정상</span></td></tr>
-            <tr><td>000013</td><td>공차 김포롯데몰점</td><td>공은옥</td><td>서울</td><td><span class="badge bg-success">정상</span></td></tr>
-            </tbody>
-        </table>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white p-3 border-bottom-0">
+            <div class="d-flex align-items-center gap-2">
+                <i data-lucide="store" class="text-danger" style="color:var(--gongcha-red) !important;"></i>
+                <h6 class="mb-0 fw-bold">매장 목록</h6>
+            </div>
+        </div>
+        <div id="myGrid" class="ag-theme-alpine" style="height: 500px; width: 100%;"></div>
     </div>
 </div>
-<script>lucide.createIcons();</script>
+
+<script>
+    $(document).ready(function() {
+        lucide.createIcons();
+
+        const columnDefs = [
+            { field: "code", headerName: "코드", width: 100, pinned: 'left', cellStyle: { 'font-weight': 'bold' } },
+            { field: "name", headerName: "매장명", width: 200, pinned: 'left' },
+            { field: "manager", headerName: "담당자", width: 120 },
+            { field: "region", headerName: "지역", width: 100 },
+            { field: "status", headerName: "상태", width: 100, cellRenderer: params => {
+                return params.value === '정상' ? '<span class="badge bg-success">정상</span>' : '<span class="badge bg-secondary">폐점</span>';
+            }},
+            { field: "phone", headerName: "전화번호", width: 150 },
+            { field: "address", headerName: "주소", flex: 1, minWidth: 300 }
+        ];
+
+        const rowData = [
+            { code: "000004", name: "공차 홍대점", manager: "공은옥", region: "서울", status: "정상", phone: "02-1234-5678", address: "서울 마포구 홍익로 10" },
+            { code: "000013", name: "공차 김포롯데몰점", manager: "공은옥", region: "서울", status: "정상", phone: "02-9876-5432", address: "서울 강서구 하늘길 38" },
+            { code: "000025", name: "공차 강남본점", manager: "김철수", region: "서울", status: "정상", phone: "02-555-1234", address: "서울 강남구 강남대로 123" },
+            { code: "000030", name: "공차 부산서면점", manager: "이영희", region: "부산", status: "정상", phone: "051-808-1234", address: "부산 부산진구 중앙대로 691" }
+        ];
+
+        const gridOptions = {
+            columnDefs: columnDefs,
+            rowData: rowData,
+            defaultColDef: {
+                resizable: true,
+                sortable: true,
+                filter: true
+            },
+            pagination: true,
+            paginationPageSize: 10
+        };
+
+        const gridDiv = document.querySelector('#myGrid');
+        agGrid.createGrid(gridDiv, gridOptions);
+    });
+</script>
 </body>
 </html>

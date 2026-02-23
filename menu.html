@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>공차 근태관리 - 메뉴관리</title>
+  <title>메뉴 관리 - 공차 직영매장 근태관리 시스템</title>
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Common CSS -->
@@ -12,51 +12,52 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- AG Grid -->
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
   <style>
-    body {
-      padding: 20px;
-    }
+    body { padding: 20px; }
+    .card { border: none; border-radius: 12px; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04); }
 
-    .menu-level-1 { font-weight: 700; color: #333; }
-    .menu-level-2 { padding-left: 20px; color: #666; }
-
-    .badge-menu-group {
-      background-color: #f1f3f5;
-      color: #495057;
-      font-weight: 600;
-      font-size: 10px;
+    /* AG Grid 커스텀 스타일 */
+    .ag-theme-alpine {
+      --ag-header-height: 40px;
+      --ag-row-height: 40px;
+      --ag-font-size: 12px;
+      --ag-header-background-color: #f8f9fa;
+      --ag-odd-row-background-color: #ffffff;
+      --ag-border-color: #dee2e6;
     }
+    .ag-header-cell-label { justify-content: center; }
+    .ag-cell { display: flex; align-items: center; justify-content: center; }
   </style>
 </head>
 <body>
 <div class="container-fluid">
   <!-- 검색 필터 영역 -->
-  <div class="card mb-4">
-    <div class="card-body p-4">
-      <div class="row g-3 align-items-end">
-        <div class="col-md-3">
-          <label class="form-label small fw-bold text-muted uppercase">메뉴 그룹</label>
-          <select class="form-select form-select-sm border-secondary-subtle">
-            <option value="">전체</option>
-            <option value="SY">시스템 관리</option>
-            <option value="BS">기초 관리</option>
-            <option value="AT">근태 관리</option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label small fw-bold text-muted">메뉴 명</label>
-          <input type="text" class="form-control form-control-sm border-secondary-subtle" placeholder="찾으실 메뉴 이름을 입력하세요.">
-        </div>
-        <div class="col-md-3 d-flex gap-2 justify-content-end">
-          <button class="btn btn-sm btn-light border px-3"><i data-lucide="rotate-ccw" style="width:14px; margin-right:4px;"></i>초기화</button>
-          <button class="btn btn-sm btn-gongcha px-4"><i data-lucide="search" style="width:14px; margin-right:4px;"></i>조회</button>
-        </div>
+  <div class="card mb-4 p-4">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small fw-bold text-muted uppercase">메뉴 그룹</label>
+        <select class="form-select form-select-sm border-secondary-subtle">
+          <option value="">전체</option>
+          <option value="SY">시스템 관리</option>
+          <option value="BS">기초 관리</option>
+          <option value="AT">근태 관리</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label small fw-bold text-muted">메뉴 명</label>
+        <input type="text" class="form-control form-control-sm border-secondary-subtle" placeholder="찾으실 메뉴 이름을 입력하세요.">
+      </div>
+      <div class="col-md-3 d-flex gap-2 justify-content-end">
+        <button class="btn btn-sm btn-light border px-3"><i data-lucide="rotate-ccw" style="width:14px; margin-right:4px;"></i>초기화</button>
+        <button class="btn btn-sm btn-gongcha px-4 shadow-sm"><i data-lucide="search" style="width:14px; margin-right:4px;"></i>조회</button>
       </div>
     </div>
   </div>
 
   <!-- 메뉴 목록 영역 -->
-  <div class="card">
+  <div class="card shadow-sm border-0">
     <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center border-bottom-0">
       <div class="d-flex align-items-center gap-2">
         <i data-lucide="menu" class="text-danger" style="color:var(--gongcha-red) !important; width:18px;"></i>
@@ -67,77 +68,7 @@
         <button class="btn btn-sm btn-gongcha px-3 shadow-sm"><i data-lucide="save" style="width:14px; margin-right:4px;"></i>변경사항 저장</button>
       </div>
     </div>
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0" id="menuTable">
-        <thead>
-        <tr>
-          <th class="text-center" style="width: 50px;">순서</th>
-          <th style="width: 120px;">그룹</th>
-          <th style="width: 100px;" class="text-center">레벨</th>
-          <th>메뉴 명</th>
-          <th>연결 프로그램 ID</th>
-          <th style="width: 100px;" class="text-center">정렬순서</th>
-          <th style="width: 100px;" class="text-center">사용여부</th>
-          <th style="width: 80px;" class="text-center">관리</th>
-        </tr>
-        </thead>
-        <tbody>
-        <!-- 시스템 관리 그룹 -->
-        <tr class="table-light">
-          <td class="text-center small text-muted">1</td>
-          <td><span class="badge badge-menu-group">시스템 관리</span></td>
-          <td class="text-center"><span class="badge bg-dark">1단계</span></td>
-          <td class="menu-level-1">시스템 관리</td>
-          <td class="text-muted">-</td>
-          <td class="text-center">10</td>
-          <td class="text-center"><input type="checkbox" class="form-check-input" checked></td>
-          <td class="text-center"><i data-lucide="plus" style="width:14px; cursor:pointer;" title="하위메뉴 추가"></i></td>
-        </tr>
-        <tr>
-          <td class="text-center small text-muted">2</td>
-          <td><span class="badge badge-menu-group">시스템 관리</span></td>
-          <td class="text-center"><span class="badge bg-secondary">2단계</span></td>
-          <td class="menu-level-2"><i data-lucide="corner-down-right" style="width:12px;" class="me-1"></i> 회사정보관리</td>
-          <td class="small text-gongcha fw-bold">SY10010</td>
-          <td class="text-center">1010</td>
-          <td class="text-center"><input type="checkbox" class="form-check-input" checked></td>
-          <td class="text-center"><i data-lucide="trash-2" class="text-muted" style="width:14px; cursor:pointer;"></i></td>
-        </tr>
-        <tr>
-          <td class="text-center small text-muted">3</td>
-          <td><span class="badge badge-menu-group">시스템 관리</span></td>
-          <td class="text-center"><span class="badge bg-secondary">2단계</span></td>
-          <td class="menu-level-2"><i data-lucide="corner-down-right" style="width:12px;" class="me-1"></i> 프로그램정보</td>
-          <td class="small text-gongcha fw-bold">SY10020</td>
-          <td class="text-center">1020</td>
-          <td class="text-center"><input type="checkbox" class="form-check-input" checked></td>
-          <td class="text-center"><i data-lucide="trash-2" class="text-muted" style="width:14px; cursor:pointer;"></i></td>
-        </tr>
-
-        <!-- 근태 관리 그룹 -->
-        <tr class="table-light">
-          <td class="text-center small text-muted">4</td>
-          <td><span class="badge badge-menu-group">근태 관리</span></td>
-          <td class="text-center"><span class="badge bg-dark">1단계</span></td>
-          <td class="menu-level-1">근태 관리</td>
-          <td class="text-muted">-</td>
-          <td class="text-center">30</td>
-          <td class="text-center"><input type="checkbox" class="form-check-input" checked></td>
-          <td class="text-center"><i data-lucide="plus" style="width:14px; cursor:pointer;"></i></td>
-        </tr>
-        <tr>
-          <td class="text-center small text-muted">5</td>
-          <td><span class="badge badge-menu-group">근태 관리</span></td>
-          <td class="text-center"><span class="badge bg-secondary">2단계</span></td>
-          <td class="menu-level-2"><i data-lucide="corner-down-right" style="width:12px;" class="me-1"></i> 정규직 근태관리</td>
-          <td class="small text-gongcha fw-bold">AT10020</td>
-          <td class="text-center">3010</td>
-          <td class="text-center"><input type="checkbox" class="form-check-input" checked></td>
-          <td class="text-center"><i data-lucide="trash-2" class="text-muted" style="width:14px; cursor:pointer;"></i></td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+    <div id="myGrid" class="ag-theme-alpine" style="height: 500px; width: 100%;"></div>
     <div class="card-footer bg-white border-top-0 p-3 text-center">
       <p class="mb-0 text-muted small">메뉴의 순서와 프로그램 연결 정보를 실시간으로 관리합니다.</p>
     </div>
@@ -146,16 +77,55 @@
 
 <script>
   $(document).ready(function() {
-    // Lucide 아이콘 초기화
-    if (typeof lucide !== 'undefined') {
-      lucide.createIcons();
-    }
+    lucide.createIcons();
 
-    // 행 선택 인터렉션
-    $('#menuTable tbody tr').on('click', function() {
-      $('#menuTable tbody tr').removeClass('table-active');
-      $(this).addClass('table-active');
-    });
+    const columnDefs = [
+      { field: "order", headerName: "순서", width: 60, pinned: 'left' },
+      { field: "group", headerName: "그룹", width: 120 },
+      { field: "level", headerName: "레벨", width: 80, cellRenderer: params => {
+          if (params.value === '1단계') return '<span class="badge bg-dark">1단계</span>';
+          if (params.value === '2단계') return '<span class="badge bg-secondary">2단계</span>';
+          return params.value;
+      }},
+      { field: "name", headerName: "메뉴 명", width: 200, cellRenderer: params => {
+          if (params.data.level === '2단계') return `<span style="padding-left: 20px;">└ ${params.value}</span>`;
+          return `<b>${params.value}</b>`;
+      }},
+      { field: "programId", headerName: "연결 프로그램 ID", width: 150, cellStyle: { 'color': '#8B0029', 'font-weight': 'bold' } },
+      { field: "sortOrder", headerName: "정렬순서", width: 100, editable: true },
+      { field: "useYn", headerName: "사용여부", width: 100, cellRenderer: params => {
+          return `<input type="checkbox" class="form-check-input" ${params.value ? 'checked' : ''} onclick="return false;">`;
+      }},
+      { field: "manage", headerName: "관리", width: 80, cellRenderer: params => {
+          if (params.data.level === '1단계') return '<i data-lucide="plus" style="width:14px; cursor:pointer;"></i>';
+          return '<i data-lucide="trash-2" class="text-muted" style="width:14px; cursor:pointer;"></i>';
+      }}
+    ];
+
+    const rowData = [
+      { order: 1, group: "시스템 관리", level: "1단계", name: "시스템 관리", programId: "-", sortOrder: 10, useYn: true },
+      { order: 2, group: "시스템 관리", level: "2단계", name: "회사정보관리", programId: "SY10010", sortOrder: 1010, useYn: true },
+      { order: 3, group: "시스템 관리", level: "2단계", name: "프로그램정보", programId: "SY10020", sortOrder: 1020, useYn: true },
+      { order: 4, group: "근태 관리", level: "1단계", name: "근태 관리", programId: "-", sortOrder: 30, useYn: true },
+      { order: 5, group: "근태 관리", level: "2단계", name: "정규직 근태관리", programId: "AT10020", sortOrder: 3010, useYn: true }
+    ];
+
+    const gridOptions = {
+      columnDefs: columnDefs,
+      rowData: rowData,
+      defaultColDef: {
+        resizable: true,
+        sortable: false,
+        filter: false
+      },
+      onGridReady: (params) => {
+          // 아이콘 렌더링 후 다시 초기화 필요할 수 있음 (AG Grid 내부 렌더링 시점 이슈 대응)
+          setTimeout(() => lucide.createIcons(), 100);
+      }
+    };
+
+    const gridDiv = document.querySelector('#myGrid');
+    agGrid.createGrid(gridDiv, gridOptions);
   });
 </script>
 </body>

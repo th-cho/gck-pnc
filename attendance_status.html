@@ -12,6 +12,8 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- AG Grid -->
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
   <style>
     body {
       padding: 20px;
@@ -25,13 +27,24 @@
       border-left: 4px solid var(--gongcha-red);
     }
 
-    .table thead th {
-      white-space: nowrap;
+    /* AG Grid 커스텀 스타일 */
+    .ag-theme-alpine {
+      --ag-header-height: 40px;
+      --ag-row-height: 40px;
+      --ag-font-size: 12px;
+      --ag-header-background-color: #f8f9fa;
+      --ag-odd-row-background-color: #ffffff;
+      --ag-border-color: #dee2e6;
     }
 
-    .progress {
-      height: 8px;
-      border-radius: 4px;
+    .ag-header-cell-label {
+      justify-content: center;
+    }
+
+    .ag-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   </style>
 </head>
@@ -106,83 +119,7 @@
       </div>
       <button class="btn btn-sm btn-outline-secondary px-3"><i data-lucide="download" style="width:14px; margin-right:4px;"></i>엑셀 다운로드</button>
     </div>
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0 text-center">
-        <thead>
-        <tr>
-          <th>사번</th>
-          <th>성명</th>
-          <th>구분</th>
-          <th>정근(h)</th>
-          <th>연장(h)</th>
-          <th>심야(h)</th>
-          <th>휴일(h)</th>
-          <th>누적 총계</th>
-          <th style="width: 200px;">주 52h 준수율</th>
-          <th>상태</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-          <td class="fw-bold text-gongcha small">$19080901</td>
-          <td class="small">박지홍</td>
-          <td class="small">정규직</td>
-          <td>160.0</td>
-          <td>12.5</td>
-          <td>2.0</td>
-          <td>0.0</td>
-          <td class="fw-bold">174.5h</td>
-          <td>
-            <div class="d-flex align-items-center gap-2">
-              <div class="progress flex-grow-1">
-                <div class="progress-bar bg-warning" role="progressbar" style="width: 92%"></div>
-              </div>
-              <span class="small text-muted">92%</span>
-            </div>
-          </td>
-          <td><span class="badge bg-success-subtle text-success">정상</span></td>
-        </tr>
-        <tr>
-          <td class="fw-bold text-gongcha small">P24082201</td>
-          <td class="small">김예지</td>
-          <td class="small">단시간</td>
-          <td>120.0</td>
-          <td>5.0</td>
-          <td>1.5</td>
-          <td>8.0</td>
-          <td class="fw-bold">134.5h</td>
-          <td>
-            <div class="d-flex align-items-center gap-2">
-              <div class="progress flex-grow-1">
-                <div class="progress-bar bg-success" role="progressbar" style="width: 65%"></div>
-              </div>
-              <span class="small text-muted">65%</span>
-            </div>
-          </td>
-          <td><span class="badge bg-success-subtle text-success">정상</span></td>
-        </tr>
-        <tr>
-          <td class="fw-bold text-gongcha small">S23112702</td>
-          <td class="small">이연장</td>
-          <td class="small">정규직</td>
-          <td>160.0</td>
-          <td>22.0</td>
-          <td>4.0</td>
-          <td>16.0</td>
-          <td class="fw-bold">202.0h</td>
-          <td>
-            <div class="d-flex align-items-center gap-2">
-              <div class="progress flex-grow-1">
-                <div class="progress-bar bg-danger" role="progressbar" style="width: 105%"></div>
-              </div>
-              <span class="small text-danger fw-bold">초과</span>
-            </div>
-          </td>
-          <td><span class="badge bg-danger-subtle text-danger">주의</span></td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+    <div id="myGrid" class="ag-theme-alpine" style="height: 400px; width: 100%;"></div>
     <div class="card-footer bg-white border-top-0 p-3">
       <p class="mb-0 text-muted small text-center"><i data-lucide="info" style="width:12px; margin-right:4px;"></i>모든 근태 데이터는 실시간 전산 입력값을 기준으로 집계됩니다.</p>
     </div>
@@ -191,7 +128,63 @@
 
 <script>
   $(document).ready(function() {
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    lucide.createIcons();
+
+    const columnDefs = [
+      { field: "id", headerName: "사번", width: 100, pinned: 'left', cellStyle: { 'font-weight': 'bold', 'color': '#8B0029' } },
+      { field: "name", headerName: "성명", width: 100, pinned: 'left' },
+      { field: "type", headerName: "구분", width: 100 },
+      { field: "regularWork", headerName: "정근(h)", width: 100 },
+      { field: "overtimeWork", headerName: "연장(h)", width: 100 },
+      { field: "nightWork", headerName: "심야(h)", width: 100 },
+      { field: "holidayWork", headerName: "휴일(h)", width: 100 },
+      { field: "totalWork", headerName: "누적 총계", width: 120, cellStyle: { 'font-weight': 'bold' } },
+      { field: "complianceRate", headerName: "주 52h 준수율", width: 200, cellRenderer: params => {
+          const rate = params.value;
+          let colorClass = 'bg-success';
+          let textClass = 'text-muted';
+
+          if (rate > 100) {
+              colorClass = 'bg-danger';
+              textClass = 'text-danger fw-bold';
+          } else if (rate > 90) {
+              colorClass = 'bg-warning';
+          }
+
+          return `
+            <div class="d-flex align-items-center gap-2" style="height: 100%;">
+              <div class="progress flex-grow-1" style="height: 8px; border-radius: 4px;">
+                <div class="progress-bar ${colorClass}" role="progressbar" style="width: ${Math.min(rate, 100)}%"></div>
+              </div>
+              <span class="small ${textClass}">${rate}%</span>
+            </div>
+          `;
+      }},
+      { field: "status", headerName: "상태", width: 100, cellRenderer: params => {
+          if (params.value === '정상') return '<span class="badge bg-success-subtle text-success">정상</span>';
+          if (params.value === '주의') return '<span class="badge bg-danger-subtle text-danger">주의</span>';
+          return params.value;
+      }}
+    ];
+
+    const rowData = [
+      { id: "S19080901", name: "박지홍", type: "정규직", regularWork: 160.0, overtimeWork: 12.5, nightWork: 2.0, holidayWork: 0.0, totalWork: "174.5h", complianceRate: 92, status: "정상" },
+      { id: "P24082201", name: "김예지", type: "단시간", regularWork: 120.0, overtimeWork: 5.0, nightWork: 1.5, holidayWork: 8.0, totalWork: "134.5h", complianceRate: 65, status: "정상" },
+      { id: "S23112702", name: "이연장", type: "정규직", regularWork: 160.0, overtimeWork: 22.0, nightWork: 4.0, holidayWork: 16.0, totalWork: "202.0h", complianceRate: 105, status: "주의" }
+    ];
+
+    const gridOptions = {
+      columnDefs: columnDefs,
+      rowData: rowData,
+      defaultColDef: {
+        resizable: true,
+        sortable: true,
+        filter: true
+      }
+    };
+
+    const gridDiv = document.querySelector('#myGrid');
+    agGrid.createGrid(gridDiv, gridOptions);
   });
 </script>
 </body>

@@ -12,6 +12,8 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- AG Grid -->
+  <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
   <style>
     body {
       padding: 20px;
@@ -21,13 +23,24 @@
       margin-bottom: 1.5rem;
     }
 
-    .table thead th {
-      white-space: nowrap;
+    /* AG Grid 커스텀 스타일 */
+    .ag-theme-alpine {
+      --ag-header-height: 40px;
+      --ag-row-height: 40px;
+      --ag-font-size: 12px;
+      --ag-header-background-color: #f8f9fa;
+      --ag-odd-row-background-color: #ffffff;
+      --ag-border-color: #dee2e6;
     }
 
-    .form-control-sm {
-      font-size: 12px;
-      border-radius: 4px;
+    .ag-header-cell-label {
+      justify-content: center;
+    }
+
+    .ag-cell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
   </style>
 </head>
@@ -69,64 +82,7 @@
         <button class="btn btn-sm btn-gongcha px-3 shadow-sm"><i data-lucide="save" style="width:14px; margin-right:4px;"></i>전체 저장</button>
       </div>
     </div>
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0 text-center">
-        <thead>
-        <tr>
-          <th style="width: 50px;">NO</th>
-          <th>매장</th>
-          <th>사번</th>
-          <th>성명</th>
-          <th>직급</th>
-          <th style="width: 100px;">출근시간</th>
-          <th style="width: 100px;">퇴근시간</th>
-          <th style="width: 80px;">휴게(h)</th>
-          <th style="width: 80px;">근무(h)</th>
-          <th style="width: 100px;">주휴일</th>
-          <th style="width: 100px;">주휴시간</th>
-          <th style="min-width: 150px;">비고</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-          <td class="text-muted small">1</td>
-          <td>광복점</td>
-          <td class="fw-bold text-gongcha">$19080901</td>
-          <td>박지홍</td>
-          <td>점포관리자</td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="09:00" style="width: 70px;"></td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="18:00" style="width: 70px;"></td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="1.0" style="width: 50px;"></td>
-          <td class="fw-bold">8.0</td>
-          <td>
-            <select class="form-select form-select-sm mx-auto" style="width: 80px;">
-              <option>월</option><option>화</option><option>수</option><option>목</option><option>금</option><option>토</option><option selected>일</option>
-            </select>
-          </td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="8.0" style="width: 60px;"></td>
-          <td><input type="text" class="form-control form-control-sm border-0 bg-transparent" placeholder="특이사항 입력"></td>
-        </tr>
-        <tr>
-          <td class="text-muted small">2</td>
-          <td>강남본점</td>
-          <td class="fw-bold text-gongcha">S23112702</td>
-          <td>김예지</td>
-          <td>캡틴</td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="13:00" style="width: 70px;"></td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="22:00" style="width: 70px;"></td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="1.0" style="width: 50px;"></td>
-          <td class="fw-bold">8.0</td>
-          <td>
-            <select class="form-select form-select-sm mx-auto" style="width: 80px;">
-              <option selected>일</option>
-            </select>
-          </td>
-          <td><input type="text" class="form-control form-control-sm text-center mx-auto" value="8.0" style="width: 60px;"></td>
-          <td><input type="text" class="form-control form-control-sm border-0 bg-transparent" placeholder="입력"></td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+    <div id="myGrid" class="ag-theme-alpine" style="height: 400px; width: 100%;"></div>
     <div class="card-footer bg-white border-top-0 p-3">
       <p class="mb-0 text-muted small text-center"><i data-lucide="info" style="width:12px; margin-right:4px;"></i>정규직의 경우 기본 근로시간(8시간)과 주휴일 정보를 관리합니다.</p>
     </div>
@@ -135,7 +91,40 @@
 
 <script>
   $(document).ready(function() {
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    lucide.createIcons();
+
+    const columnDefs = [
+      { field: "no", headerName: "NO", width: 60, pinned: 'left' },
+      { field: "store", headerName: "매장", width: 100 },
+      { field: "id", headerName: "사번", width: 100, cellStyle: { 'font-weight': 'bold', 'color': '#8B0029' } },
+      { field: "name", headerName: "성명", width: 100 },
+      { field: "position", headerName: "직급", width: 100 },
+      { field: "startTime", headerName: "출근시간", width: 100, editable: true },
+      { field: "endTime", headerName: "퇴근시간", width: 100, editable: true },
+      { field: "breakTime", headerName: "휴게(h)", width: 80, editable: true },
+      { field: "workTime", headerName: "근무(h)", width: 80, cellStyle: { 'font-weight': 'bold' } },
+      { field: "holiday", headerName: "주휴일", width: 100, editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: ['월', '화', '수', '목', '금', '토', '일'] } },
+      { field: "holidayTime", headerName: "주휴시간", width: 100, editable: true },
+      { field: "note", headerName: "비고", minWidth: 150, flex: 1, editable: true }
+    ];
+
+    const rowData = [
+      { no: 1, store: "광복점", id: "S19080901", name: "박지홍", position: "점포관리자", startTime: "09:00", endTime: "18:00", breakTime: "1.0", workTime: "8.0", holiday: "일", holidayTime: "8.0", note: "" },
+      { no: 2, store: "강남본점", id: "S23112702", name: "김예지", position: "캡틴", startTime: "13:00", endTime: "22:00", breakTime: "1.0", workTime: "8.0", holiday: "일", holidayTime: "8.0", note: "" }
+    ];
+
+    const gridOptions = {
+      columnDefs: columnDefs,
+      rowData: rowData,
+      defaultColDef: {
+        resizable: true,
+        sortable: true,
+        filter: true
+      }
+    };
+
+    const gridDiv = document.querySelector('#myGrid');
+    agGrid.createGrid(gridDiv, gridOptions);
   });
 </script>
 </body>

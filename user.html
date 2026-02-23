@@ -3,47 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용자 관리 - 공차 직영매장 근태관리 시스템</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Common CSS -->
     <link href="common.css" rel="stylesheet">
+    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- AG Grid -->
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
     <style>
         body { padding: 20px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.04); }
         .required-mark::after { content: '*'; color: var(--gongcha-red); margin-left: 2px; }
+
+        /* AG Grid 커스텀 스타일 */
+        .ag-theme-alpine {
+            --ag-header-height: 40px;
+            --ag-row-height: 40px;
+            --ag-font-size: 12px;
+            --ag-header-background-color: #f8f9fa;
+            --ag-odd-row-background-color: #ffffff;
+            --ag-border-color: #dee2e6;
+        }
+        .ag-header-cell-label { justify-content: center; }
+        .ag-cell { display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 <div class="container-fluid">
     <!-- 검색 필터 -->
-    <div class="card mb-4 border-0 shadow-sm">
-        <div class="card-body p-4">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold text-muted uppercase">사용자구분</label>
-                    <select class="form-select form-select-sm border-secondary-subtle">
-                        <option>전체</option>
-                        <option>본사사용자</option>
-                        <option>매장사용자</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label small fw-bold text-muted uppercase">근무구분</label>
-                    <select class="form-select form-select-sm border-secondary-subtle">
-                        <option>전체</option>
-                        <option>정규근무자</option>
-                        <option>파트타이머(단시간)</option>
-                        <option>파트타이머(초단시간)</option>
-                    </select>
-                </div>
-                <div class="col-md-5">
-                    <label class="form-label small fw-bold text-muted">ID / 성명 / 사번</label>
-                    <input type="text" class="form-control form-control-sm border-secondary-subtle" placeholder="ID, 성명 또는 사번을 입력하세요.">
-                </div>
-                <div class="col-md-3 d-flex gap-2 justify-content-end">
-                    <button class="btn btn-sm btn-light border px-3"><i data-lucide="rotate-ccw" style="width:14px;"></i> 초기화</button>
-                    <button class="btn btn-sm btn-gongcha px-4"><i data-lucide="search" style="width:14px;"></i> 조회</button>
-                </div>
+    <div class="card mb-4 p-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-muted uppercase">사용자구분</label>
+                <select class="form-select form-select-sm border-secondary-subtle">
+                    <option>전체</option>
+                    <option>본사사용자</option>
+                    <option>매장사용자</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold text-muted uppercase">근무구분</label>
+                <select class="form-select form-select-sm border-secondary-subtle">
+                    <option>전체</option>
+                    <option>정규근무자</option>
+                    <option>파트타이머(단시간)</option>
+                    <option>파트타이머(초단시간)</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label small fw-bold text-muted">ID / 성명 / 사번</label>
+                <input type="text" class="form-control form-control-sm border-secondary-subtle" placeholder="ID, 성명 또는 사번을 입력하세요.">
+            </div>
+            <div class="col-md-3 d-flex gap-2 justify-content-end">
+                <button class="btn btn-sm btn-light border px-3"><i data-lucide="rotate-ccw" style="width:14px;"></i> 초기화</button>
+                <button class="btn btn-sm btn-gongcha px-4 shadow-sm"><i data-lucide="search" style="width:14px;"></i> 조회</button>
             </div>
         </div>
     </div>
@@ -52,45 +69,14 @@
         <!-- 사용자 목록 -->
         <div class="col-xl-8">
             <div class="card h-100 border-0 shadow-sm">
-                <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-bold">사용자 목록</h6>
-                    <button class="btn btn-sm btn-gongcha px-3" id="btnNewUser"><i data-lucide="plus" style="width:14px;"></i> 신규등록</button>
+                <div class="card-header bg-white p-3 d-flex justify-content-between align-items-center border-bottom-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <i data-lucide="users" class="text-danger" style="color:var(--gongcha-red) !important;"></i>
+                        <h6 class="mb-0 fw-bold">사용자 목록</h6>
+                    </div>
+                    <button class="btn btn-sm btn-gongcha px-3 shadow-sm" id="btnNewUser"><i data-lucide="plus" style="width:14px;"></i> 신규등록</button>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                        <tr class="bg-light">
-                            <th class="text-center" style="width: 50px;">NO</th>
-                            <th>사번</th>
-                            <th>사용자명</th>
-                            <th>매장/부서</th>
-                            <th>근무유형</th>
-                            <th class="text-center">모성보호</th>
-                            <th class="text-center">상태</th>
-                        </tr>
-                        </thead>
-                        <tbody id="userListBody">
-                        <tr style="cursor:pointer;" onclick="viewDetail('S19080901', '박지홍', 'REGULAR')">
-                            <td class="text-center text-muted small">1</td>
-                            <td class="fw-bold small text-gongcha">$19080901</td>
-                            <td class="small">박지홍</td>
-                            <td class="small">광복점</td>
-                            <td class="small"><span class="badge bg-light text-dark border">정규직</span></td>
-                            <td class="text-center">-</td>
-                            <td class="text-center"><span class="status-badge bg-success-subtle text-success">재직</span></td>
-                        </tr>
-                        <tr style="cursor:pointer;" onclick="viewDetail('P24082201', '김예지', 'SHORT')">
-                            <td class="text-center text-muted small">2</td>
-                            <td class="fw-bold small text-gongcha">P24082201</td>
-                            <td class="small">김예지</td>
-                            <td class="small">강남본점</td>
-                            <td class="small"><span class="badge bg-light text-dark border">단시간(15h↑)</span></td>
-                            <td class="text-center text-danger"><i data-lucide="heart" style="width:12px;"></i></td>
-                            <td class="text-center"><span class="status-badge bg-success-subtle text-success">재직</span></td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
+                <div id="myGrid" class="ag-theme-alpine" style="height: 500px; width: 100%;"></div>
             </div>
         </div>
 
@@ -110,6 +96,10 @@
                                 <label class="form-label small fw-bold required-mark">사용자명</label>
                                 <input type="text" id="formUserNm" class="form-control form-control-sm border-secondary-subtle" placeholder="성명 입력">
                             </div>
+                            <div class="col-md-12">
+                                <label class="form-label small fw-bold required-mark">사번</label>
+                                <input type="text" id="formUserId" class="form-control form-control-sm border-secondary-subtle" placeholder="사번 입력">
+                            </div>
                             <div class="col-md-12 mt-3 pt-3 border-top">
                                 <label class="form-label small fw-bold text-gongcha">근무유형 (정책 적용)</label>
                                 <select class="form-select form-select-sm border-secondary-subtle" id="formWorkType">
@@ -119,7 +109,7 @@
                                 </select>
                                 <div class="mt-1 text-muted" style="font-size: 10px;">* 유형에 따라 주휴수당 및 공휴일 유급 여부가 자동 판정됩니다.</div>
                             </div>
-                            <div class="col-md-12">
+                            <div class="col-md-12 mt-3">
                                 <div class="card bg-light border-0 p-3 shadow-sm">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <span class="small fw-bold"><i data-lucide="heart" class="text-danger me-2" style="width:14px;"></i>모성보호(임신기) 설정</span>
@@ -152,21 +142,79 @@
         </div>
     </div>
 </div>
+
 <script>
-    lucide.createIcons();
-    function viewDetail(id, name, type) {
-        $('#formTitle').text('사용자 수정 (' + id + ')');
-        $('#formUserNm').val(name);
-        $('#formWorkType').val(type);
-        $('#formPregCheck').prop('checked', (id === 'P24082201')).trigger('change');
-    }
-    $('#formPregCheck').on('change', function() {
-        $('#pregDateRange').toggleClass('d-none', !$(this).is(':checked'));
-    });
-    $('#btnNewUser').on('click', function() {
-        $('#formTitle').text('사용자 신규 등록');
-        $('#userForm')[0].reset();
-        $('#pregDateRange').addClass('d-none');
+    $(document).ready(function() {
+        lucide.createIcons();
+
+        // AG Grid 설정
+        const columnDefs = [
+            { field: "no", headerName: "NO", width: 60, pinned: 'left' },
+            { field: "id", headerName: "사번", width: 100, cellStyle: { 'font-weight': 'bold', 'color': '#8B0029' } },
+            { field: "name", headerName: "사용자명", width: 100 },
+            { field: "store", headerName: "매장/부서", width: 120 },
+            { field: "type", headerName: "근무유형", width: 120, cellRenderer: params => {
+                if (params.value === '정규직') return '<span class="badge bg-light text-dark border">정규직</span>';
+                if (params.value === '단시간') return '<span class="badge bg-light text-dark border">단시간(15h↑)</span>';
+                return params.value;
+            }},
+            { field: "maternity", headerName: "모성보호", width: 80, cellRenderer: params => {
+                if (params.value) return '<i data-lucide="heart" class="text-danger" style="width:14px;"></i>';
+                return '-';
+            }},
+            { field: "status", headerName: "상태", width: 80, cellRenderer: params => {
+                return '<span class="status-badge bg-success-subtle text-success">재직</span>';
+            }}
+        ];
+
+        const rowData = [
+            { no: 1, id: "S19080901", name: "박지홍", store: "광복점", type: "정규직", maternity: false, status: "재직", typeCode: "REGULAR" },
+            { no: 2, id: "P24082201", name: "김예지", store: "강남본점", type: "단시간", maternity: true, status: "재직", typeCode: "SHORT" }
+        ];
+
+        const gridOptions = {
+            columnDefs: columnDefs,
+            rowData: rowData,
+            defaultColDef: {
+                resizable: true,
+                sortable: true,
+                filter: true
+            },
+            rowSelection: 'single',
+            onRowSelected: onRowSelected,
+            onGridReady: (params) => {
+                setTimeout(() => lucide.createIcons(), 100);
+            }
+        };
+
+        const gridDiv = document.querySelector('#myGrid');
+        agGrid.createGrid(gridDiv, gridOptions);
+
+        // 행 선택 시 상세 정보 표시
+        function onRowSelected(event) {
+            if (event.node.isSelected()) {
+                const data = event.data;
+                $('#formTitle').text('사용자 수정 (' + data.id + ')');
+                $('#formUserNm').val(data.name);
+                $('#formUserId').val(data.id);
+                $('#formWorkType').val(data.typeCode);
+                $('#formPregCheck').prop('checked', data.maternity).trigger('change');
+            }
+        }
+
+        // 폼 제어 로직
+        $('#formPregCheck').on('change', function() {
+            $('#pregDateRange').toggleClass('d-none', !$(this).is(':checked'));
+        });
+
+        $('#btnNewUser').on('click', function() {
+            $('#formTitle').text('사용자 신규 등록');
+            $('#userForm')[0].reset();
+            $('#pregDateRange').addClass('d-none');
+
+            // 그리드 선택 해제
+            gridOptions.api.deselectAll();
+        });
     });
 </script>
 </body>
