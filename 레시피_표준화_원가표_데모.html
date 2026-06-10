@@ -165,6 +165,12 @@ function showErr(msg){ const e=$('err'); e.style.display='block'; e.textContent=
 function clearErr(){ $('err').style.display='none'; }
 
 async function generate(){
+
+  $('menu').value = SAMPLE.menu;
+  $('servings').value = SAMPLE.servings;
+  $('price').value = SAMPLE.price;
+  $('memo').value = SAMPLE.memo;
+  
   const menu = $('menu').value.trim();
   const memo = $('memo').value.trim();
   const servings = $('servings').value || 1;
