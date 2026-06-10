@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>공차 · 중앙물류 자동발주</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+<style>
+  :root{
+    --crimson:#B11C3A;--crimson-dark:#8A1530;--crimson-soft:#FBEEF1;
+    --ink:#1B1417;--bg:#F4F1EF;--surface:#FFFFFF;--muted:#857B81;
+    --line:#EBE5E3;--line-strong:#DED7D4;
+    --green:#1F7A4D;--green-soft:#E7F3EC;
+    --amber:#B5760A;--amber-soft:#FBF1DD;
+    --danger:#C0233C;--danger-soft:#FBE9EC;
+    --info:#1F5FA8;--info-soft:#E8EFF8;
+    --shadow:0 1px 2px rgba(27,20,23,.04),0 8px 24px -12px rgba(27,20,23,.14);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Pretendard','Pretendard Variable',-apple-system,sans-serif;background:var(--bg);color:var(--ink);
+    font-feature-settings:"tnum";-webkit-font-smoothing:antialiased;letter-spacing:-.01em;}
+  .app{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+
+  .side{background:var(--ink);color:#E9E2E5;padding:22px 16px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
+  .brand{display:flex;align-items:center;gap:11px;padding:6px 8px 22px}
+  .brand .mark{width:38px;height:38px;border-radius:11px;background:var(--crimson);display:grid;place-items:center;font-weight:800;font-size:19px;color:#fff;box-shadow:0 6px 16px -6px rgba(177,28,58,.7)}
+  .brand .txt b{display:block;font-size:15px;letter-spacing:-.02em}
+  .brand .txt span{font-size:11px;color:#9A8E94;letter-spacing:.02em}
+  .nav-label{font-size:10.5px;color:#7C7077;letter-spacing:.08em;padding:16px 10px 7px;font-weight:600}
+  .nav a{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;color:#BBB1B6;text-decoration:none;font-size:13.5px;font-weight:500;cursor:pointer;transition:.16s}
+  .nav a svg{width:17px;height:17px;stroke-width:1.9;flex:none}
+  .nav a:hover{background:#2A2227;color:#fff}
+  .nav a.on{background:var(--crimson);color:#fff;box-shadow:0 6px 16px -8px rgba(177,28,58,.8)}
+  .nav a .badge{margin-left:auto;background:var(--crimson);color:#fff;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:20px}
+  .nav a.on .badge{background:rgba(255,255,255,.25)}
+  .side .foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:11px 8px;border-top:1px solid #2D252A}
+  .side .foot .av{width:30px;height:30px;border-radius:50%;background:#3A3035;display:grid;place-items:center;font-size:12px;font-weight:700;color:#E9E2E5}
+  .side .foot .nm{font-size:12.5px;font-weight:600}
+  .side .foot .rl{font-size:10.5px;color:#8A7E84}
+
+  .main{display:flex;flex-direction:column;min-width:0}
+  .topbar{background:var(--surface);border-bottom:1px solid var(--line);padding:15px 30px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:20}
+  .topbar h1{font-size:18px;font-weight:700;letter-spacing:-.025em}
+  .topbar .sub{font-size:12px;color:var(--muted);margin-top:1px}
+  .topbar .spacer{flex:1}
+  .cycle{display:flex;align-items:center;gap:8px;background:var(--crimson-soft);color:var(--crimson-dark);font-size:12px;font-weight:600;padding:7px 13px;border-radius:9px;border:1px solid #F3D9DF}
+  .cycle .dot{width:7px;height:7px;border-radius:50%;background:var(--crimson);box-shadow:0 0 0 3px rgba(177,28,58,.18);animation:pulse 2s infinite}
+  @keyframes pulse{50%{box-shadow:0 0 0 6px rgba(177,28,58,0)}}
+  .search{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:8px 12px;width:220px;color:var(--muted);font-size:12.5px}
+  .search svg{width:15px;height:15px}
+  .view{padding:26px 30px 60px;animation:fade .4s ease both}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}}
+  .hidden{display:none}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 19px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+  .kpi .lab{font-size:12px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:7px}
+  .kpi .lab .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center}
+  .kpi .val{font-size:31px;font-weight:800;letter-spacing:-.03em;margin-top:13px;line-height:1}
+  .kpi .val small{font-size:16px;font-weight:700;color:var(--muted)}
+  .kpi .delta{font-size:11.5px;font-weight:700;margin-top:9px;display:inline-flex;align-items:center;gap:4px}
+  .up{color:var(--green)}.down{color:var(--danger)}.flat{color:var(--muted)}
+  .kpi.alert{background:linear-gradient(160deg,#fff,#FEF6F7)}
+  .kpi.alert .val{color:var(--danger)}
+
+  .grid2{display:grid;grid-template-columns:1.55fr 1fr;gap:20px;align-items:start}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .card .head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:11px}
+  .card .head h2{font-size:14.5px;font-weight:700;letter-spacing:-.02em}
+  .card .head .cnt{font-size:11px;font-weight:700;color:var(--danger);background:var(--danger-soft);padding:2px 9px;border-radius:20px}
+  .card .head .more{margin-left:auto;font-size:12px;color:var(--crimson);font-weight:600;cursor:pointer}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{text-align:left;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.02em;padding:11px 20px;background:var(--bg);border-bottom:1px solid var(--line);white-space:nowrap}
+  thead th.r,td.r{text-align:right}
+  tbody td{padding:12px 20px;border-bottom:1px solid var(--line);vertical-align:middle}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr.clk{cursor:pointer;transition:.13s}
+  tbody tr.clk:hover{background:#FBFAF9}
+  .store,.sku{font-weight:600}
+  .dim{color:var(--muted);font-size:12px}
+  .mono{font-variant-numeric:tabular-nums;font-weight:600}
+  .neg{color:var(--danger);font-weight:700}
+  .intransit{color:var(--info);font-weight:700}
+
+  .tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:7px;white-space:nowrap}
+  .tag .d{width:6px;height:6px;border-radius:50%}
+  .t-danger{background:var(--danger-soft);color:var(--danger)}.t-danger .d{background:var(--danger)}
+  .t-warn{background:var(--amber-soft);color:var(--amber)}.t-warn .d{background:var(--amber)}
+  .t-ok{background:var(--green-soft);color:var(--green)}.t-ok .d{background:var(--green)}
+  .t-info{background:var(--info-soft);color:var(--info)}.t-info .d{background:var(--info)}
+
+  .dc-row{padding:13px 20px;border-bottom:1px solid var(--line)}
+  .dc-row:last-child{border-bottom:none}
+  .dc-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+  .dc-top .n{font-size:12.5px;font-weight:600}
+  .dc-top .d{font-size:11.5px;font-weight:700}
+  .bar{height:7px;border-radius:5px;background:var(--line);overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:5px}
+
+  .sup-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:20px}
+  .sup-mini{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 16px;box-shadow:var(--shadow)}
+  .sup-mini .nm{font-size:13px;font-weight:700}
+  .sup-mini .cyc{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .sup-mini .ft{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+  .sup-mini .ft .q{font-size:12px;font-weight:700}
+
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+  .chip{font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--surface);cursor:pointer;transition:.14s;color:var(--ink)}
+  .chip:hover{border-color:var(--line-strong)}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .btn{font-size:13px;font-weight:700;padding:9px 18px;border-radius:9px;border:none;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:7px}
+  .btn-primary{background:var(--crimson);color:#fff;box-shadow:0 8px 18px -8px rgba(177,28,58,.6)}
+  .btn-primary:hover{background:var(--crimson-dark)}
+  .btn-ghost{background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--line-strong)}
+  .push{margin-left:auto}
+
+  .order-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:16px;overflow:hidden}
+  .order-head{padding:15px 20px;display:flex;align-items:center;gap:14px;cursor:pointer}
+  .order-head:hover{background:#FBFAF9}
+  .order-head .chev{width:18px;height:18px;color:var(--muted);transition:.2s}
+  .order-card.open .chev{transform:rotate(90deg)}
+  .order-head .si{width:42px;height:42px;border-radius:11px;background:var(--crimson-soft);color:var(--crimson-dark);display:grid;place-items:center;font-weight:800;font-size:11px;flex:none;text-align:center;line-height:1.1}
+  .order-head .info b{font-size:14.5px;font-weight:700}
+  .order-head .info span{font-size:11.5px;color:var(--muted);display:block;margin-top:2px}
+  .order-head .meta{margin-left:auto;display:flex;align-items:center;gap:22px}
+  .order-head .meta .m{text-align:right}
+  .order-head .meta .m .k{font-size:10.5px;color:var(--muted);font-weight:600}
+  .order-head .meta .m .v{font-size:14px;font-weight:800;margin-top:2px}
+  .order-body{display:none;border-top:1px solid var(--line)}
+  .order-card.open .order-body{display:block}
+  .qty-in{width:78px;text-align:center;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;padding:6px;border:1px solid var(--line-strong);border-radius:7px;background:#fff;color:var(--ink)}
+  .qty-in:focus{outline:none;border-color:var(--crimson);box-shadow:0 0 0 3px var(--crimson-soft)}
+  .edited{color:var(--amber);font-size:10.5px;font-weight:700;margin-left:6px}
+  .order-foot{padding:13px 20px;background:var(--bg);display:flex;align-items:center;gap:12px;border-top:1px solid var(--line)}
+  .order-foot .note{font-size:12px;color:var(--muted)}
+  .approved-flag{display:inline-flex;align-items:center;gap:6px;color:var(--green);font-weight:700;font-size:13px}
+
+  .scrim{position:fixed;inset:0;background:rgba(27,20,23,.32);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:.25s;z-index:40}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100vh;width:440px;background:var(--surface);box-shadow:-12px 0 40px -16px rgba(27,20,23,.3);transform:translateX(100%);transition:.3s cubic-bezier(.2,.8,.2,1);z-index:50;display:flex;flex-direction:column}
+  .drawer.show{transform:none}
+  .drawer .dh{padding:20px 22px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:12px}
+  .drawer .dh .di{width:42px;height:42px;border-radius:11px;background:var(--crimson-soft);color:var(--crimson-dark);display:grid;place-items:center;flex:none}
+  .drawer .dh h3{font-size:16px;font-weight:800}
+  .drawer .dh p{font-size:12px;color:var(--muted);margin-top:2px}
+  .drawer .dh .x{margin-left:auto;cursor:pointer;color:var(--muted);background:var(--bg);border-radius:8px;width:30px;height:30px;display:grid;place-items:center}
+  .drawer .db{padding:20px 22px;overflow-y:auto;flex:1}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:22px}
+  .stat{background:var(--bg);border-radius:11px;padding:13px 15px}
+  .stat .k{font-size:11px;color:var(--muted);font-weight:600}
+  .stat .v{font-size:21px;font-weight:800;margin-top:5px;letter-spacing:-.02em}
+  .sub-h{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.03em;margin-bottom:11px}
+  .st-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .st-row:last-child{border-bottom:none}
+  .st-row .nm{font-size:13px;font-weight:600;flex:1}
+  .st-bar{width:96px;height:6px;border-radius:4px;background:var(--line);overflow:hidden}
+  .st-bar i{display:block;height:100%;border-radius:4px}
+  .st-row .dd{font-size:12px;font-weight:700;width:60px;text-align:right}
+  .in-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:12.5px}
+  .in-row:last-child{border-bottom:none}
+
+  .legend{display:flex;gap:18px;font-size:11.5px;color:var(--muted);margin-top:14px;flex-wrap:wrap}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="mark">貢</div>
+      <div class="txt"><b>공차 코리아</b><span>중앙물류 · 구매발주 시스템</span></div>
+    </div>
+    <div class="nav-label">발주 운영</div>
+    <nav class="nav">
+      <a class="on" data-view="dash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>대시보드</a>
+      <a data-view="supply"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>공급사 발주<span class="badge">7</span></a>
+      <a data-view="stock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96 12 12.01l8.73-5.05M12 22.08V12"/></svg>DC 재고</a>
+      <a data-view="inbound"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8zM5.5 18.5a2.5 2.5 0 1 0 0 .01M18.5 18.5a2.5 2.5 0 1 0 0 .01"/></svg>입고 · 검수</a>
+    </nav>
+    <div class="nav-label">마스터</div>
+    <nav class="nav">
+      <a data-view="item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 7h-9M14 17H5M17 17a3 3 0 1 0 6 0 3 3 0 0 0-6 0zM4 7a3 3 0 1 0 6 0 3 3 0 0 0-6 0z"/></svg>품목 · 레시피</a>
+      <a data-view="supplier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 .01M23 21v-2a4 4 0 0 0-3-3.87"/></svg>공급사 · 물류</a>
+      <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18M18 17V9M13 17V5M8 17v-3"/></svg>리포트</a>
+    </nav>
+    <div class="foot">
+      <div class="av">박</div>
+      <div><div class="nm">박지현 매니저</div><div class="rl">SCM · 구매발주팀</div></div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div><h1 id="pageTitle">구매발주 대시보드</h1><div class="sub" id="pageSub">전국 482개 점포 공급 · 물류센터 3개소</div></div>
+      <div class="spacer"></div>
+      <div class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>품목·공급사 검색</div>
+      <div class="cycle"><span class="dot"></span>발주 마감 임박 · 대상에프앤에프 14:00</div>
+    </header>
+
+    <!-- ===== DASHBOARD ===== -->
+    <section class="view" id="view-dash">
+      <div class="kpis">
+        <div class="kpi">
+          <div class="lab"><span class="ic" style="background:var(--green-soft);color:var(--green)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg></span>점포 공급 충족률</div>
+          <div class="val">98.6<small>%</small></div><div class="delta up">▲ 0.9%p · 본사→점포 기준</div>
+        </div>
+        <div class="kpi alert">
+          <div class="lab"><span class="ic" style="background:var(--danger-soft);color:var(--danger)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg></span>발주 대기 (공급사)</div>
+          <div class="val">7<small> 건</small></div><div class="delta down">오늘 마감 3건 · DC 결품 위험</div>
+        </div>
+        <div class="kpi">
+          <div class="lab"><span class="ic" style="background:var(--info-soft);color:var(--info)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg></span>입고 예정 (오늘)</div>
+          <div class="val">14<small> 건</small></div><div class="delta flat">₩ 38.2M · 검수 대기 2건</div>
+        </div>
+        <div class="kpi">
+          <div class="lab"><span class="ic" style="background:var(--amber-soft);color:var(--amber)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>예상 폐기율 (DC)</div>
+          <div class="val">3.1<small>%</small></div><div class="delta up">▼ 0.6%p · 목표 3.5% 이내</div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card">
+          <div class="head">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+            <h2>발주 필요 품목 (DC 결품 위험)</h2><span class="cnt">5건</span>
+            <span class="more" data-view="supply">공급사 발주로 이동 →</span>
+          </div>
+          <table>
+            <thead><tr><th>품목</th><th class="r">DC 재고</th><th class="r">일평균 소요</th><th class="r">재고일수</th><th class="r">입고예정</th><th class="r">권장발주</th><th>공급사</th></tr></thead>
+            <tbody>
+              <tr class="clk" data-sku="펄(타피오카)"><td class="sku">펄(타피오카)</td><td class="r mono">840 kg</td><td class="r mono">470 kg</td><td class="r mono neg">1.8일</td><td class="r mono intransit">0</td><td class="r mono" style="color:var(--crimson)">1,500 kg</td><td class="dim">대상에프앤에프</td></tr>
+              <tr class="clk" data-sku="우유"><td class="sku">우유</td><td class="r mono">1,200 L</td><td class="r mono">760 L</td><td class="r mono neg">1.6일</td><td class="r mono intransit">+200 L</td><td class="r mono" style="color:var(--crimson)">800 L</td><td class="dim">서울우유</td></tr>
+              <tr class="clk" data-sku="블랙 밀크티 베이스"><td class="sku">블랙 밀크티 베이스</td><td class="r mono">320 EA</td><td class="r mono">100 EA</td><td class="r mono" style="color:var(--amber)">3.2일</td><td class="r mono intransit">0</td><td class="r mono" style="color:var(--crimson)">288 EA</td><td class="dim">한울식품</td></tr>
+              <tr class="clk" data-sku="브라운 슈가 시럽"><td class="sku">브라운 슈가 시럽</td><td class="r mono">540 EA</td><td class="r mono">135 EA</td><td class="r mono" style="color:var(--amber)">4.0일</td><td class="r mono intransit">0</td><td class="r mono">800 EA</td><td class="dim">삼립F&B</td></tr>
+              <tr class="clk" data-sku="L컵 · 뚜껑"><td class="sku">L컵 · 뚜껑</td><td class="r mono">88,000 EA</td><td class="r mono">12,000 EA</td><td class="r mono" style="color:var(--green)">7.3일</td><td class="r mono intransit">0</td><td class="r mono">100,000 EA</td><td class="dim">한국팩</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <div class="head"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg><h2>DC 재고 일수</h2></div>
+          <div>
+            <div class="dc-row"><div class="dc-top"><span class="n">펄(타피오카)</span><span class="d" style="color:var(--danger)">1.8일</span></div><div class="bar"><i style="width:18%;background:var(--danger)"></i></div></div>
+            <div class="dc-row"><div class="dc-top"><span class="n">블랙 밀크티 베이스</span><span class="d" style="color:var(--amber)">3.2일</span></div><div class="bar"><i style="width:36%;background:var(--amber)"></i></div></div>
+            <div class="dc-row"><div class="dc-top"><span class="n">밀크티 파우더</span><span class="d" style="color:var(--green)">8.4일</span></div><div class="bar"><i style="width:78%;background:var(--green)"></i></div></div>
+            <div class="dc-row"><div class="dc-top"><span class="n">L컵 · 뚜껑 · 빨대</span><span class="d" style="color:var(--green)">7.3일</span></div><div class="bar"><i style="width:70%;background:var(--green)"></i></div></div>
+            <div class="dc-row"><div class="dc-top"><span class="n">브라운 슈가 시럽</span><span class="d" style="color:var(--amber)">4.0일</span></div><div class="bar"><i style="width:42%;background:var(--amber)"></i></div></div>
+          </div>
+          <div style="padding:13px 20px;border-top:1px solid var(--line)" class="legend">
+            <span><i style="background:var(--danger)"></i>2일 미만</span><span><i style="background:var(--amber)"></i>2~5일</span><span><i style="background:var(--green)"></i>5일 이상</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sup-strip">
+        <div class="sup-mini"><div class="nm">대상에프앤에프</div><div class="cyc">발주 화·목 · 마감 14:00</div><div class="ft"><span class="tag t-danger"><i class="d"></i>마감 임박</span><span class="q">1 품목</span></div></div>
+        <div class="sup-mini"><div class="nm">한울식품</div><div class="cyc">발주 매일 · 마감 18:00</div><div class="ft"><span class="tag t-warn"><i class="d"></i>대기</span><span class="q">2 품목</span></div></div>
+        <div class="sup-mini"><div class="nm">서울우유</div><div class="cyc">직배송 매일 · 마감 17:00</div><div class="ft"><span class="tag t-warn"><i class="d"></i>대기</span><span class="q">1 품목</span></div></div>
+        <div class="sup-mini"><div class="nm">한국팩</div><div class="cyc">발주 주1회(금) · 마감 15:00</div><div class="ft"><span class="tag t-ok"><i class="d"></i>여유</span><span class="q">1 품목</span></div></div>
+      </div>
+    </section>
+
+    <!-- ===== SUPPLIER ORDER ===== -->
+    <section class="view hidden" id="view-supply">
+      <div class="toolbar">
+        <span class="chip on">전체 7</span>
+        <span class="chip">마감 임박 3</span>
+        <span class="chip">신선 식자재</span>
+        <span class="chip">부자재</span>
+        <span class="btn btn-ghost push"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.2-8.5"/><path d="M21 3v6h-6"/></svg>소요·예측 재계산</span>
+        <button class="btn btn-primary" onclick="approveAll()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>마감 임박 일괄 발주</button>
+      </div>
+
+      <!-- 대상에프앤에프 -->
+      <div class="order-card open">
+        <div class="order-head" onclick="toggleOrder(this)">
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+          <div class="si">대상<br>F&F</div>
+          <div class="info"><b>대상에프앤에프</b><span>펄(타피오카) · 중부 DC 입고 · 리드타임 2.8일(지연) · 발주 화·목 · 마감 오늘 14:00</span></div>
+          <div class="meta"><span class="tag t-danger"><i class="d"></i>결품 위험 1</span><div class="m"><div class="k">발주 품목</div><div class="v">1 종</div></div><div class="m"><div class="k">예상 금액</div><div class="v">₩4,800,000</div></div></div>
+        </div>
+        <div class="order-body">
+          <table>
+            <thead><tr><th>품목</th><th class="r">DC 재고</th><th class="r">예측소요(LT)</th><th class="r">안전재고</th><th class="r">입고예정</th><th class="r">MOQ</th><th class="r">자동산출</th><th class="r">발주수량</th><th>상태</th></tr></thead>
+            <tbody>
+              <tr><td class="sku">펄(타피오카)</td><td class="r mono neg">840 kg</td><td class="r mono">1,316 kg</td><td class="r mono">660 kg</td><td class="r mono intransit">0</td><td class="r mono">500 kg</td><td class="r mono" style="color:var(--crimson)">1,500 kg</td><td class="r"><input class="qty-in" value="1500" onchange="markEdit(this)"></td><td><span class="tag t-danger"><i class="d"></i>결품</span></td></tr>
+            </tbody>
+          </table>
+          <div class="order-foot"><span class="note">ⓘ 목표재고(LT소요 1,316 + 안전 660) − 현재고 840 − 입고예정 0 = 1,136kg → MOQ 500kg 배수로 올림 = 1,500kg</span><button class="btn btn-primary push" onclick="approveCard(this)">공급사로 발주 전송</button></div>
+        </div>
+      </div>
+
+      <!-- 한울식품 -->
+      <div class="order-card">
+        <div class="order-head" onclick="toggleOrder(this)">
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+          <div class="si">한울<br>식품</div>
+          <div class="info"><b>한울식품 (OEM)</b><span>티베이스·파우더 · 중부 DC 입고 · 리드타임 1일 · 발주 매일 · 마감 18:00</span></div>
+          <div class="meta"><span class="tag t-warn"><i class="d"></i>주의 1</span><div class="m"><div class="k">발주 품목</div><div class="v">2 종</div></div><div class="m"><div class="k">예상 금액</div><div class="v">₩3,120,000</div></div></div>
+        </div>
+        <div class="order-body">
+          <table>
+            <thead><tr><th>품목</th><th class="r">DC 재고</th><th class="r">예측소요(LT)</th><th class="r">안전재고</th><th class="r">입고예정</th><th class="r">MOQ</th><th class="r">자동산출</th><th class="r">발주수량</th><th>상태</th></tr></thead>
+            <tbody>
+              <tr><td class="sku">블랙 밀크티 베이스</td><td class="r mono">320 EA</td><td class="r mono">100 EA</td><td class="r mono">200 EA</td><td class="r mono intransit">0</td><td class="r mono">12 EA</td><td class="r mono" style="color:var(--crimson)">288 EA</td><td class="r"><input class="qty-in" value="288" onchange="markEdit(this)"></td><td><span class="tag t-warn"><i class="d"></i>주의</span></td></tr>
+              <tr><td class="sku">밀크티 파우더</td><td class="r mono">1,210 EA</td><td class="r mono">144 EA</td><td class="r mono">300 EA</td><td class="r mono intransit">0</td><td class="r mono">20 EA</td><td class="r mono">60 EA</td><td class="r"><input class="qty-in" value="60" onchange="markEdit(this)"></td><td><span class="tag t-ok"><i class="d"></i>정상</span></td></tr>
+            </tbody>
+          </table>
+          <div class="order-foot"><span class="note">ⓘ 예측소요 = 전 점포 판매 → 레시피(BOM) 환산 후 리드타임 기간 합산</span><button class="btn btn-primary push" onclick="approveCard(this)">공급사로 발주 전송</button></div>
+        </div>
+      </div>
+
+      <!-- 서울우유 -->
+      <div class="order-card">
+        <div class="order-head" onclick="toggleOrder(this)">
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+          <div class="si">서울<br>우유</div>
+          <div class="info"><b>서울우유</b><span>우유 · 직배송(신선) · 리드타임 1일 · 발주 매일 · 마감 17:00 · 유통기한 7일</span></div>
+          <div class="meta"><span class="tag t-warn"><i class="d"></i>주의 1</span><div class="m"><div class="k">발주 품목</div><div class="v">1 종</div></div><div class="m"><div class="k">예상 금액</div><div class="v">₩960,000</div></div></div>
+        </div>
+        <div class="order-body">
+          <table>
+            <thead><tr><th>품목</th><th class="r">DC 재고</th><th class="r">예측소요(LT)</th><th class="r">안전재고</th><th class="r">입고예정</th><th class="r">MOQ</th><th class="r">자동산출</th><th class="r">발주수량</th><th>상태</th></tr></thead>
+            <tbody>
+              <tr><td class="sku">우유</td><td class="r mono">1,200 L</td><td class="r mono">760 L</td><td class="r mono">600 L</td><td class="r mono intransit">+200 L</td><td class="r mono">50 L</td><td class="r mono" style="color:var(--crimson)">800 L</td><td class="r"><input class="qty-in" value="800" onchange="markEdit(this)"></td><td><span class="tag t-warn"><i class="d"></i>주의</span></td></tr>
+            </tbody>
+          </table>
+          <div class="order-foot"><span class="note">⚠ 신선 식자재(유통기한 7일) — 과발주 시 폐기 위험. 안전재고를 높이지 않고 <b>매일 소량 발주</b>로 설계됨.</span><button class="btn btn-primary push" onclick="approveCard(this)">공급사로 발주 전송</button></div>
+        </div>
+      </div>
+
+      <!-- 한국팩 -->
+      <div class="order-card">
+        <div class="order-head" onclick="toggleOrder(this)">
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+          <div class="si">한국<br>팩</div>
+          <div class="info"><b>한국팩</b><span>L컵·뚜껑·빨대 · 중부 DC 입고 · 리드타임 5일 · 발주 주1회(금) · MOQ 50,000 EA</span></div>
+          <div class="meta"><span class="tag t-ok"><i class="d"></i>여유</span><div class="m"><div class="k">발주 품목</div><div class="v">1 종</div></div><div class="m"><div class="k">예상 금액</div><div class="v">₩6,400,000</div></div></div>
+        </div>
+        <div class="order-body">
+          <table>
+            <thead><tr><th>품목</th><th class="r">DC 재고</th><th class="r">예측소요(LT)</th><th class="r">안전재고</th><th class="r">입고예정</th><th class="r">MOQ</th><th class="r">자동산출</th><th class="r">발주수량</th><th>상태</th></tr></thead>
+            <tbody>
+              <tr><td class="sku">L컵 · 뚜껑</td><td class="r mono">88,000 EA</td><td class="r mono">60,000 EA</td><td class="r mono">40,000 EA</td><td class="r mono intransit">0</td><td class="r mono">50,000 EA</td><td class="r mono">100,000 EA</td><td class="r"><input class="qty-in" value="100000" onchange="markEdit(this)"></td><td><span class="tag t-ok"><i class="d"></i>정상</span></td></tr>
+            </tbody>
+          </table>
+          <div class="order-foot"><span class="note">ⓘ 비신선·리드타임 5일 — 발주 주기가 길어 <b>대량 발주</b>가 정상. 우유와 정반대 정책.</span><button class="btn btn-primary push" onclick="approveCard(this)">공급사로 발주 전송</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== DC STOCK ===== -->
+    <section class="view hidden" id="view-stock">
+      <div class="toolbar">
+        <span class="chip on">전체</span><span class="chip">중부 DC</span><span class="chip">영남 DC</span><span class="chip">호남 DC</span>
+      </div>
+      <div class="card">
+        <div class="head"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg><h2>물류센터 재고 현황</h2><span class="more">행 클릭 시 센터별 · 입고예정 상세</span></div>
+        <table>
+          <thead><tr><th>품목</th><th>분류</th><th class="r">DC 재고</th><th class="r">일평균 소요</th><th class="r">재고일수</th><th class="r">입고예정</th><th class="r">안전재고</th><th>상태</th></tr></thead>
+          <tbody>
+            <tr class="clk" data-sku="펄(타피오카)"><td class="sku">펄(타피오카)</td><td class="dim">신선 · 원부재료</td><td class="r mono">840 kg</td><td class="r mono">470 kg</td><td class="r mono neg">1.8일</td><td class="r mono intransit">0</td><td class="r mono">660 kg</td><td><span class="tag t-danger"><i class="d"></i>발주 필요</span></td></tr>
+            <tr class="clk" data-sku="블랙 밀크티 베이스"><td class="sku">블랙 밀크티 베이스</td><td class="dim">티베이스</td><td class="r mono">320 EA</td><td class="r mono">100 EA</td><td class="r mono" style="color:var(--amber)">3.2일</td><td class="r mono intransit">0</td><td class="r mono">200 EA</td><td><span class="tag t-warn"><i class="d"></i>주의</span></td></tr>
+            <tr class="clk" data-sku="밀크티 파우더"><td class="sku">밀크티 파우더</td><td class="dim">분말</td><td class="r mono">1,210 EA</td><td class="r mono">144 EA</td><td class="r mono" style="color:var(--green)">8.4일</td><td class="r mono intransit">0</td><td class="r mono">300 EA</td><td><span class="tag t-ok"><i class="d"></i>충분</span></td></tr>
+            <tr class="clk" data-sku="우유"><td class="sku">우유</td><td class="dim">신선 · 유제품</td><td class="r mono">1,200 L</td><td class="r mono">760 L</td><td class="r mono neg">1.6일</td><td class="r mono intransit">+200 L</td><td class="r mono">600 L</td><td><span class="tag t-danger"><i class="d"></i>발주 필요</span></td></tr>
+            <tr class="clk" data-sku="알로에 토핑"><td class="sku">알로에 토핑</td><td class="dim">신선 · 토핑</td><td class="r mono">460 EA</td><td class="r mono">75 EA</td><td class="r mono" style="color:var(--green)">6.1일</td><td class="r mono intransit">+300 EA</td><td class="r mono">225 EA</td><td><span class="tag t-ok"><i class="d"></i>충분</span></td></tr>
+            <tr class="clk" data-sku="L컵 · 뚜껑"><td class="sku">L컵 · 뚜껑</td><td class="dim">부자재 · 비신선</td><td class="r mono">88,000 EA</td><td class="r mono">12,000 EA</td><td class="r mono" style="color:var(--green)">7.3일</td><td class="r mono intransit">0</td><td class="r mono">40,000 EA</td><td><span class="tag t-ok"><i class="d"></i>충분</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== INBOUND ===== -->
+    <section class="view hidden" id="view-inbound">
+      <div class="card">
+        <div class="head"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M16 3h5v5M21 3l-7 7M8 21H3v-5M3 21l7-7"/></svg><h2>입고 · 검수 현황</h2><span class="more">발주 → 입고 → 검수 추적</span></div>
+        <table>
+          <thead><tr><th>입고예정일</th><th>공급사</th><th>품목</th><th class="r">발주량</th><th class="r">입고량</th><th>검수</th><th>상태</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">6/8 (오늘)</td><td>서울우유</td><td class="sku">우유</td><td class="r mono">200 L</td><td class="r mono">200 L</td><td><span class="tag t-ok"><i class="d"></i>합격</span></td><td><span class="tag t-ok"><i class="d"></i>입고 완료</span></td></tr>
+            <tr><td class="mono">6/8 (오늘)</td><td>신선중부센터</td><td class="sku">알로에 토핑</td><td class="r mono">300 EA</td><td class="r mono">280 EA</td><td><span class="tag t-warn"><i class="d"></i>수량 부족</span></td><td><span class="tag t-warn"><i class="d"></i>부분 입고</span></td></tr>
+            <tr><td class="mono">6/8 (오늘)</td><td>한울식품</td><td class="sku">블랙 밀크티 베이스</td><td class="r mono">288 EA</td><td class="r mono dim">—</td><td class="dim">대기</td><td><span class="tag t-info"><i class="d"></i>입고 예정</span></td></tr>
+            <tr><td class="mono">6/9 (화)</td><td>대상에프앤에프</td><td class="sku">펄(타피오카)</td><td class="r mono">1,500 kg</td><td class="r mono dim">—</td><td class="dim">대기</td><td><span class="tag t-warn"><i class="d"></i>지연 주의</span></td></tr>
+            <tr><td class="mono">6/13 (토)</td><td>한국팩</td><td class="sku">L컵 · 뚜껑</td><td class="r mono">100,000 EA</td><td class="r mono dim">—</td><td class="dim">대기</td><td><span class="tag t-info"><i class="d"></i>입고 예정</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="legend" style="margin-top:16px;padding:0 4px">
+        <span><i style="background:var(--info)"></i>입고예정 — 미입고 물량은 발주 계산에 자동 반영</span>
+        <span><i style="background:var(--amber)"></i>부분입고/지연 — 안전재고 자동 상향 트리거</span>
+      </div>
+    </section>
+
+    <!-- ===== ITEM / RECIPE ===== -->
+    <section class="view hidden" id="view-item">
+      <div class="toolbar">
+        <span class="chip on" onclick="itemTab('sku')">품목(SKU) 마스터</span>
+        <span class="chip" onclick="itemTab('bom')">레시피(BOM) 매핑</span>
+        <span class="btn btn-ghost push"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>품목 등록</span>
+      </div>
+      <div id="item-sku">
+        <div class="card">
+          <div class="head"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M20 7h-9M14 17H5M17 17a3 3 0 1 0 6 0 3 3 0 0 0-6 0zM4 7a3 3 0 1 0 6 0 3 3 0 0 0-6 0z"/></svg><h2>품목(SKU) 마스터</h2><span class="more">발주단위 · 유통기한 · 안전재고 정책</span></div>
+          <table>
+            <thead><tr><th>품목코드</th><th>품목명</th><th>분류</th><th class="r">발주단위</th><th class="r">유통기한</th><th>주 공급사</th><th class="r">MOQ</th><th>재고 정책</th></tr></thead>
+            <tbody>
+              <tr><td class="dim mono">RM-001</td><td class="sku">펄(타피오카)</td><td class="dim">신선 · 원부재료</td><td class="r mono">kg</td><td class="r mono neg">3일</td><td>대상에프앤에프</td><td class="r mono">500 kg</td><td><span class="tag t-danger"><i class="d"></i>동적 SS · 99%</span></td></tr>
+              <tr><td class="dim mono">RM-002</td><td class="sku">블랙 밀크티 베이스</td><td class="dim">티베이스</td><td class="r mono">EA(1L)</td><td class="r mono">30일</td><td>한울식품</td><td class="r mono">12 EA</td><td><span class="tag t-danger"><i class="d"></i>동적 SS · 99%</span></td></tr>
+              <tr><td class="dim mono">PW-001</td><td class="sku">밀크티 파우더</td><td class="dim">분말</td><td class="r mono">EA</td><td class="r mono">180일</td><td>한울식품</td><td class="r mono">20 EA</td><td><span class="tag t-warn"><i class="d"></i>Min-Max</span></td></tr>
+              <tr><td class="dim mono">DA-001</td><td class="sku">우유</td><td class="dim">신선 · 유제품</td><td class="r mono">L</td><td class="r mono neg">7일</td><td>서울우유(직배송)</td><td class="r mono">50 L</td><td><span class="tag t-warn"><i class="d"></i>동적 SS · 98% · 소량다회</span></td></tr>
+              <tr><td class="dim mono">TP-001</td><td class="sku">알로에 토핑</td><td class="dim">신선 · 토핑</td><td class="r mono">EA</td><td class="r mono neg">14일</td><td>신선중부센터</td><td class="r mono">6 EA</td><td><span class="tag t-ok"><i class="d"></i>동적 SS · 95%</span></td></tr>
+              <tr><td class="dim mono">SY-001</td><td class="sku">브라운 슈가 시럽</td><td class="dim">시럽</td><td class="r mono">EA</td><td class="r mono">365일</td><td>삼립F&B</td><td class="r mono">10 EA</td><td><span class="tag t-warn"><i class="d"></i>Min-Max</span></td></tr>
+              <tr><td class="dim mono">PK-001</td><td class="sku">L컵 · 뚜껑</td><td class="dim">부자재 · 비신선</td><td class="r mono">EA</td><td class="r mono dim">—</td><td>한국팩</td><td class="r mono">50,000 EA</td><td><span class="tag t-ok"><i class="d"></i>Min-Max · 대량</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="item-bom" class="hidden">
+        <div class="card" style="margin-bottom:16px;background:linear-gradient(160deg,#fff,#FBEEF1);border-color:#F3D9DF">
+          <div style="padding:16px 20px;display:flex;gap:13px;align-items:flex-start">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--crimson)" stroke-width="2" style="flex:none;margin-top:2px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <div><b style="font-size:13.5px">레시피(BOM)는 공급사 발주의 출발점입니다</b><p style="font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.55"><b>전 점포 판매(POS)</b>를 식자재 <b>총소요</b>로 환산하는 기준표입니다. 이 총소요가 DC 재고와 만나 공급사 발주량이 계산됩니다. 신메뉴·레시피 변경이 즉시 반영되지 않으면 발주가 통째로 틀어집니다.</p></div>
+          </div>
+        </div>
+        <div class="order-card open">
+          <div class="order-head" onclick="toggleOrder(this)"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg><div class="si">M01</div><div class="info"><b>펄 블랙 밀크티 (L)</b><span>밀크티 · 베스트셀러</span></div><div class="meta"><div class="m"><div class="k">구성 품목</div><div class="v">5 종</div></div><div class="m"><div class="k">전점 주간 판매</div><div class="v">38,400 잔</div></div></div></div>
+          <div class="order-body"><table>
+            <thead><tr><th>구성 품목</th><th>품목코드</th><th class="r">1잔당 소요</th><th class="r">전점 주간 총소요</th></tr></thead>
+            <tbody>
+              <tr><td class="sku">블랙 밀크티 베이스</td><td class="dim mono">RM-002</td><td class="r mono">60 ml</td><td class="r mono">2,304 L</td></tr>
+              <tr><td class="sku">밀크티 파우더</td><td class="dim mono">PW-001</td><td class="r mono">25 g</td><td class="r mono">960 kg</td></tr>
+              <tr><td class="sku">펄(타피오카)</td><td class="dim mono">RM-001</td><td class="r mono">30 g</td><td class="r mono">1,152 kg</td></tr>
+              <tr><td class="sku">우유</td><td class="dim mono">DA-001</td><td class="r mono">120 ml</td><td class="r mono">4,608 L</td></tr>
+              <tr><td class="sku">L컵 · 뚜껑</td><td class="dim mono">PK-001</td><td class="r mono">1 EA</td><td class="r mono">38,400 EA</td></tr>
+            </tbody>
+          </table><div class="order-foot"><span class="note">ⓘ 전점 주간 총소요 = 전 점포 판매량 × 1잔당 소요. 이 값이 공급사 발주 예측의 입력이 됩니다.</span></div></div>
+        </div>
+        <div class="order-card">
+          <div class="order-head" onclick="toggleOrder(this)"><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg><div class="si">M02</div><div class="info"><b>브라운 슈가 펄 밀크티 (L)</b><span>밀크티 · 시그니처</span></div><div class="meta"><div class="m"><div class="k">구성 품목</div><div class="v">4 종</div></div><div class="m"><div class="k">전점 주간 판매</div><div class="v">21,900 잔</div></div></div></div>
+          <div class="order-body"><table>
+            <thead><tr><th>구성 품목</th><th>품목코드</th><th class="r">1잔당 소요</th><th class="r">전점 주간 총소요</th></tr></thead>
+            <tbody>
+              <tr><td class="sku">브라운 슈가 시럽</td><td class="dim mono">SY-001</td><td class="r mono">40 ml</td><td class="r mono">876 L</td></tr>
+              <tr><td class="sku">펄(타피오카)</td><td class="dim mono">RM-001</td><td class="r mono">45 g</td><td class="r mono">986 kg</td></tr>
+              <tr><td class="sku">우유</td><td class="dim mono">DA-001</td><td class="r mono">220 ml</td><td class="r mono">4,818 L</td></tr>
+              <tr><td class="sku">L컵 · 뚜껑</td><td class="dim mono">PK-001</td><td class="r mono">1 EA</td><td class="r mono">21,900 EA</td></tr>
+            </tbody>
+          </table><div class="order-foot"><span class="note">ⓘ 펄 소요가 메뉴마다 다릅니다(30g vs 45g). 메뉴 믹스 변화가 펄 발주량을 좌우합니다.</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SUPPLIER MASTER ===== -->
+    <section class="view hidden" id="view-supplier">
+      <div class="grid2" style="margin-bottom:20px">
+        <div class="card">
+          <div class="head"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><path d="M16 8h4l3 3v5h-7V8zM5.5 18.5a2.5 2.5 0 1 0 0 .01M18.5 18.5a2.5 2.5 0 1 0 0 .01"/></svg><h2>물류센터(DC)</h2></div>
+          <table>
+            <thead><tr><th>센터</th><th>담당 권역</th><th class="r">취급 품목</th><th>배송</th><th class="r">발주 마감</th></tr></thead>
+            <tbody>
+              <tr><td class="store">중부 물류센터</td><td class="dim">수도권·충청</td><td class="r mono">312</td><td class="dim">일 배송</td><td class="r mono">18:00</td></tr>
+              <tr><td class="store">영남 물류센터</td><td class="dim">영남</td><td class="r mono">298</td><td class="dim">월·수·금</td><td class="r mono">16:00</td></tr>
+              <tr><td class="store">호남 물류센터</td><td class="dim">호남·제주</td><td class="r mono">276</td><td class="dim">화·목·토</td><td class="r mono">16:00</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="head"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><h2>리드타임 변동 알림</h2><span class="cnt" style="color:var(--amber);background:var(--amber-soft)">2건</span></div>
+          <div style="padding:6px 0">
+            <div class="dc-row"><div class="dc-top"><span class="n">대상에프앤에프 · 펄</span><span class="d" style="color:var(--danger)">+0.8일 지연</span></div><div style="font-size:11.5px;color:var(--muted)">평소 2일 → 최근 2.8일 · 안전재고 자동 상향됨</div></div>
+            <div class="dc-row"><div class="dc-top"><span class="n">신선중부센터 · 알로에</span><span class="d" style="color:var(--amber)">변동성 ↑</span></div><div style="font-size:11.5px;color:var(--muted)">리드타임 편차 확대 · 모니터링 중</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="head"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0 .01M23 21v-2a4 4 0 0 0-3-3.87"/></svg><h2>공급사 마스터</h2><span class="more">MOQ · 리드타임 · 발주 마감</span></div>
+        <table>
+          <thead><tr><th>공급사</th><th>주요 품목</th><th>공급 경로</th><th class="r">리드타임</th><th class="r">MOQ</th><th>발주 요일</th><th>상태</th></tr></thead>
+          <tbody>
+            <tr><td class="store">대상에프앤에프</td><td class="dim">펄(타피오카)</td><td class="dim">중부 DC 경유</td><td class="r mono" style="color:var(--danger)">2.8일</td><td class="r mono">500 kg</td><td class="dim">화·목</td><td><span class="tag t-warn"><i class="d"></i>지연 중</span></td></tr>
+            <tr><td class="store">한울식품 (OEM)</td><td class="dim">티베이스·파우더</td><td class="dim">중부 DC</td><td class="r mono">1일</td><td class="r mono">12 EA</td><td class="dim">매일</td><td><span class="tag t-ok"><i class="d"></i>정상</span></td></tr>
+            <tr><td class="store">서울우유</td><td class="dim">우유</td><td class="dim">직배송</td><td class="r mono">1일</td><td class="r mono">50 L</td><td class="dim">매일</td><td><span class="tag t-ok"><i class="d"></i>정상</span></td></tr>
+            <tr><td class="store">신선중부센터</td><td class="dim">알로에 토핑</td><td class="dim">중부 DC 경유</td><td class="r mono" style="color:var(--amber)">2일</td><td class="r mono">6 EA</td><td class="dim">월·목</td><td><span class="tag t-warn"><i class="d"></i>변동성↑</span></td></tr>
+            <tr><td class="store">한국팩</td><td class="dim">L컵·뚜껑·빨대</td><td class="dim">중부 DC 경유</td><td class="r mono">5일</td><td class="r mono">50,000 EA</td><td class="dim">주 1회(금)</td><td><span class="tag t-ok"><i class="d"></i>정상</span></td></tr>
+            <tr><td class="store">삼립F&B</td><td class="dim">브라운 슈가 시럽</td><td class="dim">중부 DC 경유</td><td class="r mono">3일</td><td class="r mono">10 EA</td><td class="dim">수</td><td><span class="tag t-ok"><i class="d"></i>정상</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Drawer -->
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="dh">
+    <div class="di"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>
+    <div><h3 id="dTitle">펄(타피오카)</h3><p>A등급 핵심 · 신선 식자재 · 유통기한 3일</p></div>
+    <div class="x" onclick="closeDrawer()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
+  </div>
+  <div class="db">
+    <div class="stat-grid">
+      <div class="stat"><div class="k">전국 DC 재고</div><div class="v">840 kg</div></div>
+      <div class="stat"><div class="k">재고일수</div><div class="v" style="color:var(--danger)">1.8일</div></div>
+      <div class="stat"><div class="k">서비스 목표</div><div class="v">99%</div></div>
+      <div class="stat"><div class="k">평균 리드타임</div><div class="v">2.8일 <small style="font-size:11px;color:var(--muted);font-weight:600">±0.6</small></div></div>
+    </div>
+    <div class="sub-h">물류센터별 재고</div>
+    <div>
+      <div class="st-row"><span class="nm">중부 물류센터</span><div class="st-bar"><i style="width:22%;background:var(--danger)"></i></div><span class="dd" style="color:var(--danger)">520 kg</span></div>
+      <div class="st-row"><span class="nm">영남 물류센터</span><div class="st-bar"><i style="width:38%;background:var(--amber)"></i></div><span class="dd" style="color:var(--amber)">210 kg</span></div>
+      <div class="st-row"><span class="nm">호남 물류센터</span><div class="st-bar"><i style="width:18%;background:var(--danger)"></i></div><span class="dd" style="color:var(--danger)">110 kg</span></div>
+    </div>
+    <div class="sub-h" style="margin-top:22px">입고 예정</div>
+    <div>
+      <div class="in-row"><span>6/9 (화) · 대상에프앤에프</span><span class="mono intransit">+1,500 kg</span></div>
+      <div class="in-row"><span>6/11 (목) · 대상에프앤에프</span><span class="mono dim">미발주</span></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:22px" data-view="supply">공급사 발주 검토 →</button>
+  </div>
+</aside>
+
+<script>
+  const titles = {
+    dash:['구매발주 대시보드','전국 482개 점포 공급 · 물류센터 3개소'],
+    supply:['공급사 발주','원재료 공급처 자동발주 · 7건 대기'],
+    stock:['DC 재고 현황','물류센터 재고 · 입고예정 모니터링'],
+    inbound:['입고 · 검수','발주 → 입고 → 검수 추적'],
+    item:['품목 · 레시피 마스터','SKU 정책 + 메뉴→총소요(BOM)'],
+    supplier:['공급사 · 물류 마스터','MOQ · 리드타임 · 물류센터 운영']
+  };
+  function switchView(v){
+    document.querySelectorAll('.view').forEach(s=>s.classList.add('hidden'));
+    var el=document.getElementById('view-'+v);el.classList.remove('hidden');
+    el.style.animation='none';void el.offsetWidth;el.style.animation='';
+    document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('on'));
+    var link=document.querySelector('.nav a[data-view="'+v+'"]');if(link)link.classList.add('on');
+    if(titles[v]){document.getElementById('pageTitle').textContent=titles[v][0];document.getElementById('pageSub').textContent=titles[v][1];}
+    closeDrawer();
+  }
+  document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();switchView(el.dataset.view);}));
+
+  function toggleOrder(h){h.parentElement.classList.toggle('open');}
+  function itemTab(t){document.getElementById('item-sku').classList.toggle('hidden',t!=='sku');document.getElementById('item-bom').classList.toggle('hidden',t!=='bom');}
+  function markEdit(inp){var td=inp.parentElement;if(!td.querySelector('.edited')){var s=document.createElement('span');s.className='edited';s.textContent='수정됨';td.appendChild(s);}}
+  function approveCard(btn){
+    var foot=btn.parentElement;
+    foot.innerHTML='<span class="approved-flag"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M20 6 9 17l-5-5"/></svg>발주 전송 완료 · 공급사 EDI로 전송됨</span>';
+    var card=btn.closest('.order-card');var badge=card.querySelector('.meta .tag');
+    if(badge){badge.className='tag t-ok';badge.innerHTML='<i class="d"></i>발주 완료';}
+  }
+  function approveAll(){document.querySelectorAll('#view-supply .order-card').forEach(c=>{var b=c.querySelector('.order-foot .btn-primary');if(b)approveCard(b);});alert('마감 임박 공급사 발주가 일괄 전송되었습니다.');}
+
+  function openDrawer(sku){document.getElementById('dTitle').textContent=sku;document.getElementById('scrim').classList.add('show');document.getElementById('drawer').classList.add('show');}
+  function closeDrawer(){document.getElementById('scrim').classList.remove('show');document.getElementById('drawer').classList.remove('show');}
+  document.querySelectorAll('tr.clk').forEach(tr=>tr.addEventListener('click',()=>openDrawer(tr.dataset.sku||'품목 상세')));
+  document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{var sib=c.parentElement.querySelectorAll('.chip');sib.forEach(x=>x.classList.remove('on'));c.classList.add('on');}));
+</script>
+</body>
+</html>

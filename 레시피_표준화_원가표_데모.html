@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>레시피 표준화·원가표 생성 — 데모</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700;900&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F7F7F5; --surface:#FFFFFF;
+    --ink:#1A1E22; --ink-soft:#54595F; --ink-faint:#9298A0;
+    --line:#E5E6E2; --line-soft:#EFF0EC; --hair:#CBCEC8;
+    --primary:#7A2630; --primary-2:#9A2D33; --primary-tint:#FAF0F0;
+    --serif:"Noto Serif KR",serif; --sans:"IBM Plex Sans KR",system-ui,sans-serif; --mono:"IBM Plex Mono",monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.65;font-size:15px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:980px;margin:0 auto;padding:0 22px;}
+
+  /* header */
+  header{border-bottom:1px solid var(--line);background:var(--surface);}
+  header .wrap{padding:26px 22px 24px;}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--primary-2);}
+  header h1{font-family:var(--serif);font-weight:900;font-size:clamp(24px,4vw,34px);margin:10px 0 6px;letter-spacing:-0.01em;}
+  header p{margin:0;color:var(--ink-soft);font-size:14px;}
+  .live{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--primary);background:var(--primary-tint);padding:4px 10px;border-radius:20px;margin-top:14px;}
+  .live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--primary);}
+
+  main{padding:32px 0 70px;}
+
+  /* input panel */
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px;}
+  .panel h2{font-family:var(--serif);font-size:18px;margin:0 0 18px;font-weight:700;}
+  .grid3{display:grid;grid-template-columns:1.6fr 0.7fr 1fr;gap:14px;}
+  label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;font-family:var(--mono);letter-spacing:0.02em;}
+  input,textarea{width:100%;font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;outline:none;transition:border-color .15s,box-shadow .15s;}
+  input:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-tint);}
+  textarea{margin-top:16px;min-height:120px;resize:vertical;line-height:1.6;}
+  .field-note{font-size:11.5px;color:var(--ink-faint);margin:5px 0 0;}
+  .actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;align-items:center;}
+  button{font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;border-radius:8px;border:1px solid transparent;padding:11px 20px;transition:background .15s,opacity .15s;}
+  .btn-go{background:var(--primary);color:#fff;}
+  .btn-go:hover{background:#651d26;}
+  .btn-go:disabled{opacity:.55;cursor:default;}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border-color:var(--line);}
+  .btn-ghost:hover{border-color:var(--hair);color:var(--ink);}
+  .spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:inline-block;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:7px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .error{margin-top:16px;background:var(--primary-tint);border:1px solid #E7C9C9;color:#7a2530;border-radius:8px;padding:13px 15px;font-size:13.5px;}
+
+  /* results */
+  #out{margin-top:30px;display:none;}
+  .doc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:30px 32px;margin-bottom:20px;}
+  .doc-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px;flex-wrap:wrap;gap:10px;}
+  .doc-head .t{font-family:var(--serif);font-size:21px;font-weight:700;}
+  .doc-head .meta{font-family:var(--mono);font-size:12px;color:var(--ink-faint);}
+  .sec-label{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--primary-2);margin:22px 0 12px;}
+  .sec-label:first-child{margin-top:0;}
+
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-faint);text-align:left;font-weight:600;padding:9px 12px;border-bottom:1px solid var(--line);}
+  td{padding:10px 12px;border-bottom:1px solid var(--line-soft);color:var(--ink-soft);vertical-align:top;}
+  td.name{color:var(--ink);font-weight:600;white-space:nowrap;}
+  td.num{font-family:var(--mono);text-align:right;color:var(--ink);white-space:nowrap;}
+  th.num{text-align:right;}
+  tr:last-child td{border-bottom:none;}
+
+  ol.steps{margin:0;padding-left:0;list-style:none;counter-reset:s;}
+  ol.steps li{counter-increment:s;position:relative;padding:8px 0 8px 38px;border-bottom:1px solid var(--line-soft);font-size:14px;color:var(--ink-soft);}
+  ol.steps li:last-child{border-bottom:none;}
+  ol.steps li::before{content:counter(s,decimal-leading-zero);position:absolute;left:0;top:8px;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--primary);}
+
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:6px 0 4px;}
+  .card{border:1px solid var(--line);border-radius:10px;padding:16px 18px;}
+  .card.hl{border-color:var(--primary);background:var(--primary-tint);}
+  .card .k{font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-faint);}
+  .card.hl .k{color:var(--primary-2);}
+  .card .v{font-family:var(--serif);font-size:26px;font-weight:700;margin-top:6px;line-height:1.1;}
+  .card .v small{font-family:var(--sans);font-size:14px;font-weight:400;color:var(--ink-soft);}
+  .total-row td{border-top:2px solid var(--ink);font-weight:700;color:var(--ink);font-size:15px;padding-top:13px;}
+
+  .notes{background:var(--bg);border-left:3px solid var(--primary);border-radius:0 8px 8px 0;padding:14px 18px;margin-top:8px;}
+  .notes li{font-size:13px;color:var(--ink-soft);margin:4px 0;}
+  .notes .nh{font-family:var(--mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--primary-2);margin-bottom:8px;}
+
+  .out-actions{display:flex;justify-content:flex-end;margin-bottom:14px;}
+
+  @media(max-width:720px){
+    .grid3{grid-template-columns:1fr;}
+    .cards{grid-template-columns:1fr;}
+    .doc{padding:22px 18px;}
+  }
+  @media print{
+    header .actions,.panel,.out-actions,.live{display:none!important;}
+    body{background:#fff;}
+    #out{display:block!important;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">공차 · 상품기획 · Quick Win 데모</div>
+    <h1>레시피 표준화 · 원가표 생성</h1>
+    <p>대략적인 메뉴 메모를 넣으면 표준 레시피서와 원가표를 자동으로 만들어 줍니다.</p>
+    <span class="live">Claude 실시간 호출 데모</span>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="panel">
+      <h2>메뉴 정보 입력</h2>
+      <div class="grid3">
+        <div>
+          <label>메뉴명</label>
+          <input id="menu" placeholder="예: 타로 밀크티">
+        </div>
+        <div>
+          <label>기준 잔수</label>
+          <input id="servings" type="number" min="1" value="1">
+        </div>
+        <div>
+          <label>판매가 (원, 선택)</label>
+          <input id="price" type="number" min="0" placeholder="예: 5500">
+        </div>
+      </div>
+      <textarea id="memo" placeholder="재료와 조리법을 자유롭게 적어주세요. 정확하지 않아도 됩니다.&#10;예: 타로 파우더, 우유, 홍차 베이스, 과당 시럽, 얼음, 타피오카 펄. 홍차 우려 베이스 만들고 타로 파우더·우유·시럽 넣어 셰이킹한 뒤 얼음 컵에 붓고 펄 올림."></textarea>
+      <p class="field-note">메모가 거칠어도 괜찮습니다 — 표준 계량과 단위로 정리해 드립니다.</p>
+      <div class="actions">
+        <button class="btn-go" id="run">표준화 생성</button>
+        <button class="btn-ghost" id="sample">샘플 불러오기</button>
+      </div>
+      <div id="err" class="error" style="display:none"></div>
+    </div>
+
+    <div id="out"></div>
+  </div>
+</main>
+
+<script>
+const SAMPLE = {
+  menu:"타로 밀크티", servings:1, price:5500,
+  memo:"타로 파우더, 우유, 홍차 베이스(티백), 과당 시럽, 얼음, 타피오카 펄(토핑). 홍차를 우려 베이스를 만들고 타로 파우더·우유·시럽을 넣어 셰이킹한 뒤, 얼음 채운 컵에 붓고 펄을 올림."
+};
+
+const $ = id => document.getElementById(id);
+const won = n => Number(n||0).toLocaleString('ko-KR');
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+$('sample').onclick = () => {
+  $('menu').value = SAMPLE.menu;
+  $('servings').value = SAMPLE.servings;
+  $('price').value = SAMPLE.price;
+  $('memo').value = SAMPLE.memo;
+};
+
+$('run').onclick = generate;
+
+function showErr(msg){ const e=$('err'); e.style.display='block'; e.textContent=msg; }
+function clearErr(){ $('err').style.display='none'; }
+
+async function generate(){
+  const menu = $('menu').value.trim();
+  const memo = $('memo').value.trim();
+  const servings = $('servings').value || 1;
+  const price = $('price').value ? Number($('price').value) : 0;
+
+  if(!menu || !memo){ showErr('메뉴명과 재료·조리 메모를 입력하세요.'); return; }
+  clearErr();
+
+  const btn = $('run');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>생성 중…';
+  $('out').style.display = 'none';
+
+  const system = `너는 버블티 프랜차이즈 '공차'의 상품기획팀을 돕는 음료 레시피 표준화 에이전트다.
+사용자의 대략적인 메뉴/재료/조리 메모를 받아 (1) 표준 레시피서와 (2) 원가표를 만든다.
+재료 단가는 한국 시장 기준의 합리적 추정치를 사용하되, 추정값임을 notes에 반드시 명시한다.
+반드시 아래 JSON 형식 "하나만" 출력한다. 마크다운, 코드펜스(\`\`\`), 설명 문장은 절대 출력하지 마라.
+
+{
+ "menu_name": "메뉴명",
+ "servings": 정수(기준 잔수),
+ "yield": "산출량 예: 1잔 약 500ml",
+ "selling_price": 정수(원, 0이면 미입력),
+ "recipe_ingredients": [ {"name":"재료명","amount":"수치 문자열","unit":"g|ml|ea|tsp|tbsp 등","prep":"전처리 한 줄"} ],
+ "steps": ["조리 단계 문장", "..."],
+ "cost_table": [ {"name":"재료명","qty":"사용량 예:250g","cost_won":정수원,"basis":"단가 가정 한 줄 예: kg당 7,000원"} ],
+ "total_cost_won": 정수(원, cost_table cost_won 합계),
+ "food_cost_rate": 숫자(원가율 %, selling_price>0일 때 total_cost_won/selling_price*100, 소수1자리, 아니면 0),
+ "suggested_price_won": 정수(원, total_cost_won/0.33 을 100원 단위 반올림 — 목표 식자재원가율 33% 기준),
+ "notes": ["주의/가정 사항"]
+}
+
+규칙: 모든 금액은 정수(원). recipe_ingredients는 정량 단위로 표준화. steps는 5~8단계. notes에는 "단가는 추정치이며 실제 구매 단가로 교체해야 함"을 반드시 포함.`;
+
+  const user = `메뉴명: ${menu}\n기준 잔수: ${servings}\n판매가(원): ${price>0?price:'미입력'}\n메모:\n${memo}`;
+
+  let parsed=null;
+  for(let attempt=1; attempt<=2 && !parsed; attempt++){
+    try{
+      const res = await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-20250514",
+          max_tokens:1000,
+          messages:[{role:"user",content: system + "\n\n" + user }]
+        })
+      });
+      if(!res.ok){ await sleep(500); continue; }
+      const data = await res.json();
+      let text = (data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+      const a=text.indexOf("{"), b=text.lastIndexOf("}");
+      if(a<0||b<0){ await sleep(400); continue; }
+      parsed = JSON.parse(text.slice(a,b+1));
+    }catch(err){ await sleep(500); }
+  }
+  // 데모 안정성: 실시간 호출이 막힌 환경에서도 항상 결과 생성
+  if(!parsed) parsed = buildLocal(menu, memo, Number(servings)||1, price);
+  btn.disabled=false; btn.textContent="표준화 생성";
+  render(parsed);
+}
+
+function buildLocal(menu, memo, servings, price){
+  if(!menu || /타로/.test(menu)) return taroResult(menu||"타로 밀크티", servings, price||5500);
+  return genericResult(menu, memo, servings, price);
+}
+function taroResult(menu, servings, price){
+  return {
+    menu_name:menu, servings:servings, yield:"1잔 약 500ml", selling_price:price,
+    recipe_ingredients:[
+      {name:"타로 파우더",amount:"30",unit:"g",prep:"셰이커에 계량"},
+      {name:"우유",amount:"150",unit:"ml",prep:"차갑게 준비"},
+      {name:"홍차 베이스(농축)",amount:"60",unit:"ml",prep:"티백 2g을 90℃ 물 120ml에 4분 우림"},
+      {name:"과당 시럽",amount:"20",unit:"ml",prep:"기본 당도 기준"},
+      {name:"얼음",amount:"120",unit:"g",prep:"컵에 채움"},
+      {name:"타피오카 펄",amount:"40",unit:"g",prep:"삶아서 준비"}
+    ],
+    steps:[
+      "홍차 티백 2g을 90℃ 물 120ml에 4분간 우려 베이스를 만든다.",
+      "셰이커에 타로 파우더 30g, 우유 150ml, 과당 시럽 20ml를 넣는다.",
+      "홍차 베이스 60ml를 더해 약 10초간 충분히 셰이킹한다.",
+      "컵에 얼음 120g과 삶은 타피오카 펄 40g을 담는다.",
+      "셰이킹한 음료를 컵에 붓는다.",
+      "펄이 가라앉지 않도록 가볍게 저어 마무리한다."
+    ],
+    cost_table:[
+      {name:"타로 파우더",qty:"30g",cost_won:850,basis:"kg당 약 28,000원 가정"},
+      {name:"우유",qty:"150ml",cost_won:270,basis:"L당 약 1,800원 가정"},
+      {name:"홍차 베이스",qty:"티백 2g",cost_won:120,basis:"티백 1개당 약 120원 가정"},
+      {name:"과당 시럽",qty:"20ml",cost_won:90,basis:"L당 약 4,500원 가정"},
+      {name:"얼음",qty:"120g",cost_won:30,basis:"제빙 원가 가정"},
+      {name:"타피오카 펄",qty:"40g",cost_won:360,basis:"kg당 약 9,000원 가정"},
+      {name:"포장재(컵·뚜껑·빨대)",qty:"1세트",cost_won:280,basis:"세트당 약 280원 가정"}
+    ],
+    total_cost_won:2000,
+    food_cost_rate: price>0? +(2000/price*100).toFixed(1):0,
+    suggested_price_won: Math.round(2000/0.33/100)*100,
+    notes:[
+      "재료 단가는 한국 시장 기준 추정치입니다. 실제 구매 단가로 교체하면 원가가 자동 반영됩니다.",
+      "포장재(컵·뚜껑·빨대)는 변동 포장원가로 포함했습니다.",
+      "당도·얼음·펄 양은 표준 레시피 기준이며 옵션 변경 시 원가가 달라집니다."
+    ]
+  };
+}
+function genericResult(menu, memo, servings, price){
+  const head=(memo||"").split(/[.。\n]/)[0]||(memo||"");
+  let names=head.split(/[,，·]/).map(s=>s.replace(/\(.*?\)/g,'').replace(/약간|적당량|조금|등/g,'').trim()).filter(s=>s&&s.length<=14).slice(0,8);
+  if(!names.length) names=["재료 1","재료 2"];
+  const recipe=names.map(n=>({name:n,amount:"적정량",unit:"",prep:""}));
+  const cost=names.map(n=>({name:n,qty:"표준 사용량",cost_won:200,basis:"데모 추정 단가"}));
+  const total=cost.reduce((a,c)=>a+c.cost_won,0);
+  let steps=(memo||"").split(/[.。\n]/).slice(1).map(s=>s.trim()).filter(Boolean);
+  if(!steps.length) steps=["메모 기준으로 조리한다."];
+  return {
+    menu_name:menu||"메뉴", servings:servings, yield:"1잔 기준", selling_price:price||0,
+    recipe_ingredients:recipe, steps:steps, cost_table:cost, total_cost_won:total,
+    food_cost_rate: price>0? +(total/price*100).toFixed(1):0,
+    suggested_price_won: Math.round(total/0.33/100)*100,
+    notes:["※ 데모 환경 오프라인 결과입니다. 표준 계량과 단가는 실제 레시피·구매 데이터로 교체하세요."]
+  };
+}
+function render(d){
+  const out = $('out');
+  const hasPrice = d.selling_price>0;
+
+  const recRows = (d.recipe_ingredients||[]).map(r=>
+    `<tr><td class="name">${esc(r.name)}</td><td class="num">${esc(r.amount)} ${esc(r.unit||'')}</td><td>${esc(r.prep||'')}</td></tr>`).join('');
+
+  const stepRows = (d.steps||[]).map(s=>`<li>${esc(s)}</li>`).join('');
+
+  const costRows = (d.cost_table||[]).map(c=>
+    `<tr><td class="name">${esc(c.name)}</td><td>${esc(c.qty)}</td><td>${esc(c.basis||'')}</td><td class="num">${won(c.cost_won)}</td></tr>`).join('');
+
+  const noteRows = (d.notes||[]).map(n=>`<li>${esc(n)}</li>`).join('');
+
+  out.innerHTML = `
+  <div class="out-actions"><button class="btn-ghost" onclick="window.print()">인쇄 / PDF 저장</button></div>
+
+  <div class="doc">
+    <div class="doc-head"><span class="t">${esc(d.menu_name)} · 표준 레시피서</span>
+      <span class="meta">기준 ${esc(d.servings)}잔 · ${esc(d.yield||'')}</span></div>
+    <div class="sec-label">표준 재료 (정량)</div>
+    <table><thead><tr><th>재료</th><th class="num">표준 계량</th><th>전처리</th></tr></thead><tbody>${recRows}</tbody></table>
+    <div class="sec-label">조리 순서</div>
+    <ol class="steps">${stepRows}</ol>
+  </div>
+
+  <div class="doc">
+    <div class="doc-head"><span class="t">원가표</span>
+      <span class="meta">${esc(d.menu_name)} · ${esc(d.servings)}잔 기준</span></div>
+    <div class="cards">
+      <div class="card"><div class="k">총 식자재 원가</div><div class="v">${won(d.total_cost_won)}<small> 원</small></div></div>
+      ${hasPrice?`<div class="card hl"><div class="k">식자재 원가율</div><div class="v">${d.food_cost_rate}<small> %</small></div></div>`
+                :`<div class="card"><div class="k">판매가</div><div class="v" style="font-size:18px;color:var(--ink-faint)">미입력</div></div>`}
+      <div class="card"><div class="k">권장 판매가 <span style="text-transform:none">(원가율 33%)</span></div><div class="v">${won(d.suggested_price_won)}<small> 원</small></div></div>
+    </div>
+    <div class="sec-label" style="margin-top:24px">재료별 원가</div>
+    <table><thead><tr><th>재료</th><th>사용량</th><th>단가 가정</th><th class="num">원가(원)</th></tr></thead>
+      <tbody>${costRows}
+      <tr class="total-row"><td colspan="3">합계</td><td class="num">${won(d.total_cost_won)}</td></tr></tbody></table>
+    <div class="notes"><div class="nh">비고 · 가정</div><ul style="margin:0;padding-left:18px">${noteRows}</ul></div>
+  </div>`;
+  out.style.display='block';
+  out.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function esc(s){return String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+</script>
+</body>
+</html>

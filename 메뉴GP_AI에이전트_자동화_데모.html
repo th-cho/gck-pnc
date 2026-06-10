@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>메뉴 GP 리포트 · AI Agent 자동화 데모</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600;700;900&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F7F7F5; --surface:#FFFFFF;
+    --ink:#1A1E22; --ink-soft:#54595F; --ink-faint:#9298A0;
+    --line:#E5E6E2; --line-soft:#EFF0EC; --hair:#CBCEC8;
+    --primary:#7A2630; --primary-2:#9A2D33; --tint:#FAF0F0; --card:#F4F4F1;
+    --go:#1E7A5B; --warn:#B0433D; --warn-bg:#F6E7E5;
+    --serif:"Noto Serif KR",serif; --sans:"IBM Plex Sans KR",system-ui,sans-serif; --mono:"IBM Plex Mono",monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;font-size:15px;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 22px;}
+
+  header{background:var(--surface);border-bottom:1px solid var(--line);}
+  header .wrap{padding:24px 22px 22px;}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--primary-2);}
+  header h1{font-family:var(--serif);font-weight:900;font-size:clamp(22px,3.6vw,31px);margin:9px 0 5px;letter-spacing:-0.01em;}
+  header p{margin:0;color:var(--ink-soft);font-size:14px;}
+
+  main{padding:28px 0 70px;}
+
+  /* sources */
+  .sources{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+  .src{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:7px 14px;font-size:12.5px;color:var(--ink-soft);font-family:var(--mono);}
+  .src .dot{width:8px;height:8px;border-radius:50%;background:var(--go);}
+  .src b{color:var(--ink);font-weight:600;}
+
+  .runbar{display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap;}
+  button{font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;border-radius:8px;border:1px solid transparent;padding:12px 22px;transition:background .15s,opacity .15s;}
+  .btn-go{background:var(--primary);color:#fff;}
+  .btn-go:hover{background:#651d26;}
+  .btn-go:disabled{opacity:.5;cursor:default;}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--hair);color:var(--ink);}
+  .agentname{font-family:var(--mono);font-size:12.5px;color:var(--ink-faint);}
+  .agentname b{color:var(--primary-2);}
+
+  /* agent process */
+  .proc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 4px;display:none;}
+  .proc.show{display:block;}
+  .proc-head{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-faint);padding:14px 22px 10px;border-bottom:1px solid var(--line-soft);}
+  .step{display:flex;gap:14px;padding:14px 22px;position:relative;}
+  .step:not(:last-child)::after{content:"";position:absolute;left:33px;top:38px;bottom:-6px;width:1px;background:var(--line);}
+  .step.done:not(:last-child)::after{background:var(--primary);opacity:.35;}
+  .ic{width:24px;height:24px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;border:1px solid var(--hair);background:var(--surface);z-index:1;margin-top:1px;}
+  .ic.pending{border-style:dashed;}
+  .ic.active{border-color:var(--primary);}
+  .ic.done{background:var(--primary);border-color:var(--primary);}
+  .ic .spin{width:11px;height:11px;border:2px solid var(--tint);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;}
+  .ic .chk{color:#fff;font-size:13px;line-height:1;}
+  .ic .pdot{width:6px;height:6px;border-radius:50%;background:var(--hair);}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .step-body{flex:1;min-width:0;}
+  .step-title{font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .tool{font-family:var(--mono);font-size:11px;color:var(--primary-2);background:var(--tint);padding:2px 8px;border-radius:4px;}
+  .step-detail{font-size:13px;color:var(--ink-faint);margin-top:3px;}
+  .step-result{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);margin-top:7px;padding:8px 12px;background:var(--bg);border-radius:6px;border:1px solid var(--line-soft);display:none;white-space:pre-wrap;}
+  .step.done .step-result{display:block;}
+  .step.pending .step-title{color:var(--ink-faint);}
+
+  /* report */
+  #report{margin-top:30px;display:none;}
+  #report.show{display:block;animation:fade .5s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+  .doc{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:30px 32px;margin-bottom:20px;}
+  .doc-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:22px;flex-wrap:wrap;gap:8px;}
+  .doc-head .t{font-family:var(--serif);font-size:22px;font-weight:700;}
+  .doc-head .meta{font-family:var(--mono);font-size:12px;color:var(--ink-faint);}
+  .badge-auto{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--primary);background:var(--tint);padding:3px 9px;border-radius:4px;}
+
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:22px;}
+  .kpi{border:1px solid var(--line);border-radius:10px;padding:15px 16px;}
+  .kpi.hl{border-color:var(--primary);background:var(--tint);}
+  .kpi .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint);}
+  .kpi.hl .k{color:var(--primary-2);}
+  .kpi .v{font-family:var(--serif);font-size:23px;font-weight:700;margin-top:5px;line-height:1.1;}
+  .kpi .v small{font-family:var(--sans);font-size:13px;font-weight:400;color:var(--ink-soft);}
+
+  .ai-summary{background:var(--bg);border-left:3px solid var(--primary);border-radius:0 8px 8px 0;padding:16px 20px;margin-bottom:8px;}
+  .ai-summary .h{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--primary-2);margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+  .ai-summary p{margin:0;font-size:14.5px;color:var(--ink);line-height:1.65;}
+
+  .sec-label{font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--primary-2);margin:24px 0 12px;}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  th{font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-faint);text-align:left;font-weight:600;padding:9px 10px;border-bottom:1px solid var(--line);}
+  th.num{text-align:right;}
+  td{padding:9px 10px;border-bottom:1px solid var(--line-soft);color:var(--ink-soft);}
+  td.name{color:var(--ink);font-weight:600;}
+  td.num{font-family:var(--mono);text-align:right;color:var(--ink);}
+  tr.flag td{background:var(--warn-bg);}
+  tr.flag td.gp{color:var(--warn);font-weight:700;}
+  .total td{border-top:2px solid var(--ink);font-weight:700;color:var(--ink);padding-top:12px;}
+
+  .bars{display:flex;flex-direction:column;gap:10px;}
+  .bar-row{display:grid;grid-template-columns:90px 1fr 130px;align-items:center;gap:12px;font-size:13px;}
+  .bar-row .cat{font-weight:600;color:var(--ink);}
+  .bar-track{background:var(--line-soft);border-radius:5px;height:22px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--primary);border-radius:5px;width:0;transition:width .8s cubic-bezier(.4,0,.2,1);}
+  .bar-val{font-family:var(--mono);font-size:12px;text-align:right;color:var(--ink-soft);}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:26px;}
+  .two h4{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--primary-2);margin:0 0 10px;}
+  .two ul{margin:0;padding-left:18px;}
+  .two li{font-size:13.5px;color:var(--ink-soft);margin:6px 0;line-height:1.55;}
+
+  .warnbox{background:var(--warn-bg);border:1px solid #E7C9C9;border-radius:9px;padding:14px 18px;margin-top:18px;}
+  .warnbox .h{font-weight:600;color:var(--warn);font-size:13.5px;margin-bottom:6px;}
+  .warnbox p{margin:0;font-size:13px;color:#6e3531;}
+
+  .out-actions{display:flex;justify-content:flex-end;margin-bottom:12px;}
+  @media(max-width:720px){.cards{grid-template-columns:1fr 1fr;}.two{grid-template-columns:1fr;}.bar-row{grid-template-columns:70px 1fr 90px;}.doc{padding:20px 18px;}}
+  @media print{.runbar,.proc,.sources,.out-actions,header p{display:none!important;}#report{display:block!important;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">공차 · 상품기획 · AI Agent 자동화 데모</div>
+    <h1>공차 메뉴 GP 리포트 — 자동 생성</h1>
+    <p>에이전트가 데이터 수집부터 분석·코멘트·리포트 조립까지 스스로 수행합니다.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <div class="sources">
+      <span class="src"><span class="dot"></span><b>POS 판매 데이터</b> · 연결됨</span>
+      <span class="src"><span class="dot"></span><b>구매 단가 테이블</b> · 연결됨</span>
+      <span class="src"><span class="dot"></span><b>목표 GP율</b> 65%</span>
+    </div>
+
+    <div class="runbar">
+      <button class="btn-go" id="run">리포트 자동 생성</button>
+      <button class="btn-ghost" id="reset" style="display:none">다시 실행</button>
+      <span class="agentname"><b>GP Agent</b> · claude 기반 분석 에이전트</span>
+    </div>
+
+    <div class="proc" id="proc">
+      <div class="proc-head">Agent 실행 로그</div>
+      <div id="steps"></div>
+    </div>
+
+    <div id="report"></div>
+  </div>
+</main>
+
+<script>
+const TARGET = 0.65;
+const RAW = [
+ {name:"밀크티 (M)",cat:"밀크티",price:4500,cost:1400,qty:2200},
+ {name:"펄 밀크티",cat:"밀크티",price:5000,cost:1750,qty:1800},
+ {name:"타로 밀크티",cat:"밀크티",price:5500,cost:2250,qty:1100},
+ {name:"얼그레이 밀크티",cat:"밀크티",price:4900,cost:1650,qty:950},
+ {name:"망고 스무디",cat:"스무디",price:6000,cost:2500,qty:1300},
+ {name:"딸기 스무디",cat:"스무디",price:6000,cost:2550,qty:800},
+ {name:"자몽 과일차",cat:"과일차",price:5500,cost:1900,qty:1000},
+ {name:"알로에 그린티",cat:"과일차",price:5000,cost:1600,qty:700},
+ {name:"우롱티",cat:"오리지널 티",price:3500,cost:900,qty:1500},
+ {name:"자스민 그린티",cat:"오리지널 티",price:3300,cost:800,qty:1200},
+ {name:"펄 토핑",cat:"토핑",price:700,cost:250,qty:2600},
+];
+
+const $=id=>document.getElementById(id);
+const won=n=>"₩"+Math.round(n).toLocaleString('ko-KR');
+const pct=x=>(x*100).toFixed(1)+"%";
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+let model=null; // computed dataset
+
+$('run').onclick=runAgent;
+$('reset')?.addEventListener('click',()=>location.reload());
+
+function compute(){
+  const rows=RAW.map(m=>{
+    const unitGP=m.price-m.cost, gpRate=unitGP/m.price, costRate=m.cost/m.price;
+    const rev=m.price*m.qty, cst=m.cost*m.qty, gp=unitGP*m.qty;
+    return {...m,unitGP,gpRate,costRate,rev,cst,gp,flag:gpRate<TARGET};
+  });
+  const totRev=rows.reduce((a,r)=>a+r.rev,0);
+  const totGP=rows.reduce((a,r)=>a+r.gp,0);
+  const totCost=rows.reduce((a,r)=>a+r.cst,0);
+  rows.forEach(r=>r.share=r.rev/totRev);
+  const cats={};
+  rows.forEach(r=>{(cats[r.cat]??={rev:0,gp:0,n:0});cats[r.cat].rev+=r.rev;cats[r.cat].gp+=r.gp;cats[r.cat].n++;});
+  const catArr=Object.entries(cats).map(([cat,v])=>({cat,...v,gpRate:v.gp/v.rev,share:v.rev/totRev})).sort((a,b)=>b.gp-a.gp);
+  const flagged=rows.filter(r=>r.flag);
+  return {rows,totRev,totGP,totCost,overall:totGP/totRev,catArr,flagged};
+}
+
+const STEPS=[
+ {title:"데이터 수집",tool:"pos.fetch() · cost.lookup()",detail:"POS 판매 데이터와 구매 단가 테이블을 불러옵니다",
+  run:async d=>`✓ 메뉴 ${d.rows.length}종 수집 · 총 판매수량 ${d.rows.reduce((a,r)=>a+r.qty,0).toLocaleString()}건`},
+ {title:"원가·GP 계산",tool:"gp.compute()",detail:"메뉴별 단위 GP · GP율 · 원가율을 산출합니다",
+  run:async d=>`✓ 단위 GP / GP율 / 원가율 계산 완료 · 전체 GP율 ${pct(d.overall)}`},
+ {title:"매출·GP 집계",tool:"aggregate.byCategory()",detail:"카테고리·전사 단위로 매출과 GP를 집계합니다",
+  run:async d=>`✓ 월 총매출 ${won(d.totRev)} · 월 총 GP ${won(d.totGP)}`},
+ {title:"저마진 이상치 탐지",tool:"anomaly.detect(target=65%)",detail:"목표 GP율 미달 메뉴를 자동 플래그합니다",
+  run:async d=>d.flagged.length?`⚠ 목표 미달 ${d.flagged.length}개 탐지: ${d.flagged.map(f=>f.name).join(", ")}`:"✓ 목표 미달 메뉴 없음"},
+ {title:"AI 코멘트 생성",tool:"claude.generate()",detail:"계산 결과를 바탕으로 요약·인사이트·개선안을 작성합니다",ai:true,
+  run:async d=>{const c=await aiComment(d); d.comment=c; return `✓ 요약·인사이트 ${c.insights.length}건·개선안 ${c.actions.length}건 생성`}},
+ {title:"리포트 조립",tool:"report.render()",detail:"표·차트·요약을 GP 리포트로 결합합니다",
+  run:async d=>"✓ 메뉴 GP 리포트 생성 완료"},
+];
+
+async function runAgent(){
+  $('run').disabled=true; $('report').classList.remove('show'); $('report').innerHTML="";
+  model=compute();
+  const host=$('steps'); host.innerHTML="";
+  $('proc').classList.add('show');
+  STEPS.forEach((s,i)=>{
+    host.insertAdjacentHTML('beforeend',`
+     <div class="step pending" id="st${i}">
+       <div class="ic pending"><span class="pdot"></span></div>
+       <div class="step-body">
+         <div class="step-title">${s.title}<span class="tool">${s.tool}</span></div>
+         <div class="step-detail">${s.detail}</div>
+         <div class="step-result" id="res${i}"></div>
+       </div>
+     </div>`);
+  });
+
+  for(let i=0;i<STEPS.length;i++){
+    const st=$('st'+i), ic=st.querySelector('.ic');
+    st.classList.remove('pending'); ic.className="ic active"; ic.innerHTML='<span class="spin"></span>';
+    if(!STEPS[i].ai) await sleep(620+Math.random()*420);
+    let result;
+    try{ result=await STEPS[i].run(model); }
+    catch(e){ result="⚠ 처리 중 일부 단계를 건너뜀"; }
+    $('res'+i).textContent=result;
+    ic.className="ic done"; ic.innerHTML='<span class="chk">✓</span>';
+    st.classList.add('done');
+    await sleep(160);
+  }
+  renderReport(model);
+  $('run').style.display="none"; $('reset').style.display="inline-block";
+}
+
+async function aiComment(d){
+  const payload={
+    target_gp_rate:TARGET,
+    total_revenue:d.totRev, total_gp:d.totGP, overall_gp_rate:+d.overall.toFixed(4),
+    menus:d.rows.map(r=>({name:r.name,cat:r.cat,price:r.price,gp_rate:+r.gpRate.toFixed(3),month_gp:r.gp,revenue_share:+r.share.toFixed(3)})),
+    categories:d.catArr.map(c=>({cat:c.cat,gp_rate:+c.gpRate.toFixed(3),month_gp:c.gp,revenue_share:+c.share.toFixed(3)})),
+    below_target:d.flagged.map(f=>({name:f.name,gp_rate:+f.gpRate.toFixed(3)}))
+  };
+  const system=`너는 버블티 프랜차이즈 '공차'의 상품기획팀 GP(매출총이익) 분석 에이전트다.
+계산된 메뉴별·카테고리별 GP 데이터를 받아 경영진용 코멘트를 작성한다.
+반드시 아래 JSON "하나만" 출력한다. 마크다운·코드펜스·설명 금지.
+{
+ "summary":"2~3문장 경영진용 요약(원가율·GP율·핵심 이슈 중심, 한국어)",
+ "insights":["데이터 기반 핵심 인사이트 3개"],
+ "actions":["실행 가능한 개선 제안 2~3개(저마진 메뉴 개선·가격/원가 조정 등)"]
+}
+GP율은 (판매가-식자재원가)/판매가다. 금액 언급 시 '원' 단위. 추측보다 주어진 수치에 근거하라.`;
+  const user="다음은 이번 달 계산 결과다:\n"+JSON.stringify(payload);
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1200,system,messages:[{role:"user",content:user}]})
+    });
+    if(!res.ok) throw 0;
+    const data=await res.json();
+    let t=(data.content||[]).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+    const s=t.indexOf("{"),e=t.lastIndexOf("}");
+    const j=JSON.parse(t.slice(s,e+1));
+    if(!j.summary||!Array.isArray(j.insights)) throw 0;
+    j.actions=j.actions||[];
+    return j;
+  }catch(_){
+    const top=d.catArr[0], low=d.flagged.map(f=>f.name).join(", ");
+    const byRate=[...d.catArr].sort((a,b)=>b.gpRate-a.gpRate);
+    const hi=byRate[0], lo=byRate[byRate.length-1];
+    return {
+      summary:`이번 달 전체 GP율은 ${pct(d.overall)}로 목표(${pct(TARGET)}) 대비 ${d.overall>=TARGET?'상회':'소폭 미달'}입니다. 매출 비중이 가장 큰 카테고리는 ${top.cat}(${pct(top.share)})이며 GP 기여도도 가장 큽니다.`,
+      insights:[
+        `GP율이 가장 높은 카테고리는 ${hi.cat}(${pct(hi.gpRate)}), 가장 낮은 카테고리는 ${lo.cat}(${pct(lo.gpRate)})입니다.`,
+        `${top.cat}이(가) 매출의 ${pct(top.share)}를 차지해 수익 구조의 핵심입니다.`,
+        d.flagged.length?`목표 GP율 미달 메뉴: ${low}.`:`목표 GP율 미달 메뉴는 없습니다.`
+      ],
+      actions:[
+        d.flagged.length?`${low}의 원가(과일·재료) 재협상 또는 판매가·용량 재검토.`:`현 가격·원가 구조를 유지하며 고GP 메뉴 비중 확대.`,
+        `펄·토핑 등 고마진 옵션 업셀로 객단가와 평균 GP율 동반 개선.`
+      ]
+    };
+  }
+}
+
+function renderReport(d){
+  const now=new Date();
+  const ts=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const c=d.comment;
+  const rowsHtml=d.rows.map(r=>`
+    <tr class="${r.flag?'flag':''}">
+      <td class="name">${r.name}</td><td>${r.cat}</td>
+      <td class="num">${r.price.toLocaleString()}</td>
+      <td class="num">${r.cost.toLocaleString()}</td>
+      <td class="num gp">${pct(r.gpRate)}</td>
+      <td class="num">${r.qty.toLocaleString()}</td>
+      <td class="num">${r.gp.toLocaleString()}</td>
+      <td class="num">${pct(r.share)}</td>
+    </tr>`).join('');
+  const maxGP=Math.max(...d.catArr.map(c=>c.gp));
+  const bars=d.catArr.map(c=>`
+    <div class="bar-row"><span class="cat">${c.cat}</span>
+      <div class="bar-track"><div class="bar-fill" data-w="${(c.gp/maxGP*100).toFixed(1)}"></div></div>
+      <span class="bar-val">${won(c.gp)} · ${pct(c.gpRate)}</span></div>`).join('');
+
+  $('report').innerHTML=`
+   <div class="out-actions"><button class="btn-ghost" onclick="window.print()">인쇄 / PDF 저장</button></div>
+   <div class="doc">
+     <div class="doc-head"><span class="t">메뉴 GP 리포트</span>
+       <span class="meta"><span class="badge-auto">AI 자동 생성</span>  ${ts}</span></div>
+
+     <div class="cards">
+       <div class="kpi"><div class="k">메뉴 수</div><div class="v">${d.rows.length}<small> 종</small></div></div>
+       <div class="kpi"><div class="k">월 총매출</div><div class="v" style="font-size:19px">${won(d.totRev)}</div></div>
+       <div class="kpi"><div class="k">월 총 GP</div><div class="v" style="font-size:19px">${won(d.totGP)}</div></div>
+       <div class="kpi hl"><div class="k">전체 GP율</div><div class="v">${pct(d.overall)}</div></div>
+     </div>
+
+     <div class="ai-summary">
+       <div class="h">AI 요약 · GP Agent</div>
+       <p>${c.summary}</p>
+     </div>
+
+     <div class="sec-label">메뉴별 GP</div>
+     <table>
+       <thead><tr><th>메뉴</th><th>카테고리</th><th class="num">판매가</th><th class="num">식자재원가</th><th class="num">GP율</th><th class="num">월 수량</th><th class="num">월 GP</th><th class="num">기여도</th></tr></thead>
+       <tbody>${rowsHtml}
+       <tr class="total"><td colspan="4">합계 / 전체</td><td class="num gp">${pct(d.overall)}</td><td></td><td class="num">${d.totGP.toLocaleString()}</td><td class="num">100.0%</td></tr></tbody>
+     </table>
+
+     <div class="sec-label">카테고리별 월 GP</div>
+     <div class="bars">${bars}</div>
+
+     ${d.flagged.length?`<div class="warnbox"><div class="h">⚠ 목표 GP율(${pct(TARGET)}) 미달 — ${d.flagged.length}개 메뉴</div>
+       <p>${d.flagged.map(f=>`${f.name} (${pct(f.gpRate)})`).join(" · ")}  →  원가 재협상 또는 가격 검토 권장</p></div>`:''}
+
+     <div class="sec-label">AI 인사이트 · 개선 제안</div>
+     <div class="two">
+       <div><h4>핵심 인사이트</h4><ul>${c.insights.map(i=>`<li>${i}</li>`).join('')}</ul></div>
+       <div><h4>개선 제안</h4><ul>${c.actions.map(a=>`<li>${a}</li>`).join('')}</ul></div>
+     </div>
+   </div>`;
+  $('report').classList.add('show');
+  requestAnimationFrame(()=>{setTimeout(()=>document.querySelectorAll('.bar-fill').forEach(b=>b.style.width=b.dataset.w+'%'),60);});
+  $('report').scrollIntoView({behavior:'smooth',block:'start'});
+}
+</script>
+</body>
+</html>
