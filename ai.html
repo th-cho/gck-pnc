@@ -105,18 +105,30 @@
 
   /* ===== 바이브 코딩 애니메이션 ===== */
   .vibe-wrap{display:grid;grid-template-columns:1.25fr 1fr;gap:1.4rem;align-items:stretch}
-  .vibe{background:var(--navy-deep);border-radius:14px;padding:1.1rem;display:flex;flex-direction:column;gap:.9rem;min-height:0}
+  .vibe-left{display:flex;flex-direction:column;min-height:0}
+  .vibe-left .ide,.vibe-left .vibe{flex:1;min-height:0}
+  .vibe{background:var(--navy-deep);border-radius:14px;padding:1rem;display:flex;flex-direction:column;gap:.6rem;min-height:0}
   .vibe-head{display:flex;align-items:center;gap:.5rem;color:#9DAAC4;font-size:.74rem;font-weight:700;letter-spacing:.14em}
   .vibe-head .dots{display:flex;gap:.3rem}
   .vibe-head .dots i{width:9px;height:9px;border-radius:50%;background:#46546F;display:block}
-  .vibe-prompt{background:#16203A;border:1px solid #33405C;border-radius:10px;padding:.8rem .95rem;
-    font-size:.85rem;color:#E6EBF5;line-height:1.65;min-height:4.6rem}
+  .vibe-prompt{background:#16203A;border:1px solid #33405C;border-radius:10px;padding:.6rem .9rem;
+    font-size:.84rem;color:#E6EBF5;line-height:1.55;min-height:3.4rem}
   .vibe-prompt .label{color:#7E8CA8;font-size:.7rem;font-weight:700;letter-spacing:.12em;display:block;margin-bottom:.35rem}
   .caret{display:inline-block;width:7px;height:1em;background:var(--red);vertical-align:-2px;margin-left:2px;animation:blink .8s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
   .vibe-status{font-size:.74rem;color:#8FE3B0;font-weight:700;letter-spacing:.06em;min-height:1.1rem}
+  .vibe-term{background:#0A1020;border:1px solid #2A3650;border-radius:8px;padding:.55rem .7rem;
+    font-family:'Consolas','Menlo','Courier New',monospace;font-size:.72rem;line-height:1.55;
+    color:#9FB3D1;overflow:hidden;display:none}
+  .vibe-term.show{display:block}
+  .vibe-term .ln{white-space:pre;opacity:0;transform:translateY(3px);transition:opacity .2s ease,transform .2s ease}
+  .vibe-term .ln.on{opacity:1;transform:none}
+  .vibe-term .pr{color:#5B8DEF}
+  .vibe-term .ok{color:#3DDC97}
+  .vibe-term .dim{color:#5C6B8A}
+  .vibe-term .tcaret{display:inline-block;width:6px;height:.95em;background:#3DDC97;vertical-align:-2px;animation:blink .8s steps(1) infinite}
 
-  .vibe-screen{flex:1;background:#fff;border-radius:10px;padding:.8rem;display:flex;flex-direction:column;gap:.55rem;overflow:hidden;min-height:11rem}
+  .vibe-screen{flex:1;background:#fff;border-radius:10px;padding:.7rem;display:flex;flex-direction:column;gap:.45rem;overflow:hidden;min-height:8rem}
   .vs-el{opacity:0;transform:translateY(8px);transition:opacity .45s ease,transform .45s ease}
   .vs-el.on{opacity:1;transform:none}
   .vs-titlebar{display:flex;align-items:center;justify-content:space-between}
@@ -144,6 +156,36 @@
   .cmp p{font-size:.84rem;color:var(--sub);line-height:1.6}
   .vibe-side .vs-note{font-size:.85rem;color:var(--sub);line-height:1.7;padding-left:.2rem}
   .vibe-side .vs-note b{color:var(--navy)}
+
+  /* ===== VS Code 에디터 ===== */
+  .ide-wrap{display:grid;grid-template-columns:1.55fr 1fr;gap:1.3rem;align-items:stretch}
+  .ide{background:#1E1E1E;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .ide-bar{display:flex;align-items:center;gap:.55rem;background:#323233;padding:.55rem .8rem}
+  .ide-bar .tl{display:flex;gap:.4rem}
+  .ide-bar .tl i{width:11px;height:11px;border-radius:50%;display:block}
+  .ide-bar .tl i:nth-child(1){background:#FF5F56}
+  .ide-bar .tl i:nth-child(2){background:#FFBD2E}
+  .ide-bar .tl i:nth-child(3){background:#27C93F}
+  .ide-bar .fname{margin-left:.6rem;font-size:.76rem;color:#CFCFCF;font-family:'Consolas','Menlo',monospace}
+  .ide-bar .fname .dot{color:#5B8DEF;margin-right:.4rem}
+  .ide-main{flex:1;display:flex;min-height:0}
+  .ide-gutter{padding:.7rem .55rem;text-align:right;color:#5A5A5A;font-family:'Consolas','Menlo',monospace;font-size:.78rem;line-height:1.62;user-select:none;background:#1E1E1E;white-space:pre}
+  .ide-code{flex:1;padding:.7rem .9rem;font-family:'Consolas','Menlo',monospace;font-size:.78rem;line-height:1.62;color:#D4D4D4;overflow:hidden;white-space:pre-wrap;word-break:break-word}
+  .ide-code .kw{color:#569CD6}
+  .ide-code .fn{color:#DCDCAA}
+  .ide-code .st{color:#CE9178}
+  .ide-code .cm{color:#6A9955}
+  .ide-code .tag{color:#4EC9B0}
+  .ide-code .num{color:#B5CEA8}
+  .ide-code .cursor{display:inline-block;width:7px;height:1em;background:#AEAFAD;vertical-align:-2px;animation:blink .9s steps(1) infinite}
+  .ide-status{display:flex;align-items:center;gap:.6rem;background:#007ACC;color:#fff;padding:.32rem .8rem;font-size:.7rem;font-weight:600}
+  .ide-status .sp{margin-left:auto}
+  .ide-side{display:flex;flex-direction:column;justify-content:center;gap:1.1rem}
+  .ide-side .is-item{display:flex;gap:.8rem;align-items:flex-start;font-size:1rem;line-height:1.6;color:var(--txt)}
+  .ide-side .is-item i{font-style:normal;color:var(--red);font-weight:900;line-height:1.55}
+  .ide-side .is-item b{color:var(--navy);font-weight:700}
+  .ide-side .is-note{font-size:.82rem;color:var(--sub);line-height:1.7;background:var(--gray-card);border-radius:10px;padding:.9rem 1.1rem}
+  .ide-side .is-note b{color:var(--red)}
 
   /* ===== As-Is / To-Be ===== */
   .a2b{display:grid;grid-template-columns:1fr auto 1.05fr;gap:1.1rem;align-items:stretch}
@@ -340,7 +382,7 @@
     </div>
   </section>
 
-  <!-- 4. Done: 바이브 코딩 -->
+  <!-- 4. Done: 코딩 → 바이브 코딩 -->
   <section class="slide">
     <div class="head">
       <h2>완료 ㅣ 매장 근태 시스템 구축</h2>
@@ -349,19 +391,36 @@
     <div class="body">
       <div class="vibe-def"><b>바이브 코딩(Vibe Coding)</b><span>개발자가 코드를 직접 작성하는 대신, AI에게 자연어로 의도를 전달하여 프로그램을 만드는 개발 방식</span></div>
       <div class="vibe-wrap">
-        <div class="vibe">
-          <div class="vibe-head">
-            <span class="dots"><i></i><i></i><i></i></span>
-            <span>AI 바이브 코딩 — 프롬프트 입력 → 화면 자동 생성</span>
+        <div class="vibe-left">
+          <!-- 1단계: 에디터 코딩 -->
+          <div class="ide" id="ideStage">
+            <div class="ide-bar">
+              <span class="tl"><i></i><i></i><i></i></span>
+              <span class="fname"><span class="dot">◇</span>AttendanceForm.jsx</span>
+            </div>
+            <div class="ide-main">
+              <div class="ide-gutter" id="ideGutter"></div>
+              <div class="ide-code" id="ideCode"></div>
+            </div>
+            <div class="ide-status">
+              <span>● Live</span><span>JSX React</span>
+              <span class="sp" id="ideStat">Ln 1, Col 1</span>
+            </div>
           </div>
-          <div class="vibe-prompt">
-            <span class="label">PROMPT</span>
-            <span id="vtype"></span><span class="caret" id="vcaret"></span>
-          </div>
-          <div class="vibe-status" id="vstatus"></div>
-          <div class="vibe-screen" id="vscreen">
-            <div class="vs-el vs-titlebar">
-              <span class="t">정규직 일별 근태 입력 현황</span>
+          <!-- 2단계: 바이브 코딩 -->
+          <div class="vibe" id="vibeStage" style="display:none">
+            <div class="vibe-head">
+              <span class="dots"><i></i><i></i><i></i></span>
+              <span>AI 바이브 코딩 — 프롬프트 입력 → 화면 자동 생성</span>
+            </div>
+            <div class="vibe-prompt">
+              <span class="label">PROMPT</span>
+              <span id="vtype"></span><span class="caret" id="vcaret"></span>
+            </div>
+            <div class="vibe-status" id="vstatus"></div>
+            <div class="vibe-screen" id="vscreen">
+              <div class="vs-el vs-titlebar">
+                <span class="t">정규직 일별 근태 입력 현황</span>
               <span class="btns"><span class="r">조회</span><span>저장</span><span>근태제출</span></span>
             </div>
             <div class="vs-el vs-filter"><span></span><span></span><span></span></div>
@@ -369,6 +428,7 @@
             <div class="vs-el vs-row"><span>김OO</span><span class="chip-b">05:30</span><span class="chip-b">14:30</span><span>0</span><span class="chip-g">휴일근무</span></div>
             <div class="vs-el vs-row"><span>이OO</span><span class="chip-b">09:30</span><span class="chip-b">14:00</span><span>0</span><span class="chip-g">휴무</span></div>
             <div class="vs-el vs-row"><span>박OO</span><span class="chip-b">12:30</span><span class="chip-b">21:30</span><span class="chip-r">0.5h</span><span class="chip-g">연장</span></div>
+          </div>
           </div>
         </div>
         <div class="vibe-side">
@@ -625,7 +685,7 @@
     i=Math.max(0,Math.min(slides.length-1,n));
     slides.forEach((s,k)=>s.classList.toggle('active',k===i));
     pageno.textContent=(i+1)+' / '+slides.length;
-    if(slides[i].querySelector('#vscreen'))startVibe();else stopVibe();
+    if(slides[i].querySelector('#vibeStage'))startCodingSeq();else stopCodingSeq();
     if(slides[i].querySelector('#chatlog'))startAgent();else stopAgent();
     if(slides[i].querySelector('.shot-stage'))startShots();else if(typeof stopShots==='function')stopShots();
   }
@@ -658,21 +718,88 @@
     shotImgs.forEach((im,j)=>im.classList.toggle('on',j===shotIdx));
     document.getElementById('shotcap').textContent=shotCaps[shotIdx];
   }
-  function startShots(){stopShots();showShot(0);shotTimer=setInterval(()=>showShot(shotIdx+1),1000)}
+  function startShots(){stopShots();showShot(0);shotTimer=setInterval(()=>showShot(shotIdx+1),2000)}
   function stopShots(){if(shotTimer){clearInterval(shotTimer);shotTimer=null}}
   shotTabs.forEach(b=>{
     b.onclick=()=>{
       showShot(+b.dataset.shot);
-      if(shotTimer){clearInterval(shotTimer);shotTimer=setInterval(()=>showShot(shotIdx+1),1000)}
+      if(shotTimer){clearInterval(shotTimer);shotTimer=setInterval(()=>showShot(shotIdx+1),2000)}
     };
   });
+
+  /* === 코딩 시퀀스: 에디터 → 바이브 코딩 순차 재생 === */
+  let seqTimer=null;
+  function stopCodingSeq(){stopIDE();stopVibe();if(seqTimer){clearTimeout(seqTimer);seqTimer=null}}
+  function startCodingSeq(){
+    stopCodingSeq();
+    const ide=document.getElementById('ideStage');
+    const vibe=document.getElementById('vibeStage');
+    ide.style.display='';vibe.style.display='none';
+    startIDE(()=>{
+      // 에디터 완료 → 바이브 코딩으로 전환
+      seqTimer=setTimeout(()=>{
+        ide.style.display='none';vibe.style.display='';
+        startVibe(()=>{
+          // 바이브 완료 → 잠시 후 처음부터
+          seqTimer=setTimeout(startCodingSeq,3000);
+        });
+      },1500);
+    });
+  }
+
+  /* VS Code 에디터 코딩 애니메이션 */
+  const CODE=[
+    '<span class="kw">import</span> { useState } <span class="kw">from</span> <span class="st">\'react\'</span>;',
+    '',
+    '<span class="kw">function</span> <span class="fn">AttendanceForm</span>() {',
+    '  <span class="kw">const</span> [rows, setRows] = <span class="fn">useState</span>([]);',
+    '',
+    '  <span class="cm">// 주 52h / 일 12h 초과 정합성 검증</span>',
+    '  <span class="kw">function</span> <span class="fn">validate</span>(r) {',
+    '    <span class="kw">if</span> (r.weekly &gt; <span class="num">52</span>) <span class="kw">return</span> <span class="st">\'주 52시간 초과\'</span>;',
+    '    <span class="kw">if</span> (r.daily &gt; <span class="num">12</span>) <span class="kw">return</span> <span class="st">\'일 12시간 초과\'</span>;',
+    '  }',
+    '',
+    '  <span class="kw">return</span> (',
+    '    <span class="tag">&lt;table&gt;</span>',
+    '      <span class="tag">&lt;Row</span> label=<span class="st">"출근"</span> <span class="tag">/&gt;</span>',
+    '      <span class="tag">&lt;Row</span> label=<span class="st">"퇴근"</span> <span class="tag">/&gt;</span>',
+    '    <span class="tag">&lt;/table&gt;</span>',
+    '  );',
+    '}',
+  ];
+  let itimers=[];
+  function it(fn,ms){itimers.push(setTimeout(fn,ms))}
+  function stopIDE(){itimers.forEach(clearTimeout);itimers=[]}
+  function startIDE(onDone){
+    stopIDE();
+    const code=document.getElementById('ideCode');
+    const gutter=document.getElementById('ideGutter');
+    const stat=document.getElementById('ideStat');
+    code.innerHTML='';gutter.innerHTML='';stat.textContent='Ln 1, Col 1';
+    let t=400, shown=0;
+    function renderGutter(n){
+      let g='';for(let i=1;i<=n;i++)g+=i+'\n';gutter.textContent=g;
+    }
+    CODE.forEach((line,k)=>{
+      it(()=>{
+        shown=k+1;
+        code.innerHTML=CODE.slice(0,shown).join('\n')+'<span class="cursor"></span>';
+        renderGutter(shown);
+        stat.textContent='Ln '+shown+', Col '+(line.replace(/<[^>]+>/g,'').length+1);
+      },t);
+      t+= line.trim()==='' ? 110 : 360;
+    });
+    it(()=>{code.innerHTML=CODE.join('\n');stat.textContent='저장됨 ✓  Ln '+CODE.length},t+200);
+    it(()=>{onDone&&onDone()},t+500);
+  }
 
   /* 바이브 코딩 애니메이션 */
   const PROMPT='매장 직원 근태 입력 화면 만들어줘. 출근·퇴근·지각 시간과 특이사항을 입력하고, 근태 정합성 체크해줘.';
   let vtimers=[];
   function vt(fn,ms){vtimers.push(setTimeout(fn,ms))}
   function stopVibe(){vtimers.forEach(clearTimeout);vtimers=[]}
-  function startVibe(){
+  function startVibe(onDone){
     stopVibe();
     const type=document.getElementById('vtype');
     const status=document.getElementById('vstatus');
@@ -687,7 +814,7 @@
     els.forEach((el,k)=>{vt(()=>{el.classList.add('on');status.textContent='⚙ AI 코드 생성 중... ('+(k+1)+'/'+els.length+')'},t+k*320)});
     t+=els.length*320+400;
     vt(()=>{status.textContent='✓ 화면 생성 완료 — 약 1개월 만에 시스템 오픈'},t);
-    vt(startVibe,t+3200);
+    vt(()=>{onDone&&onDone()},t+2500);
   }
 
   /* AI Agent 데모 애니메이션 */
