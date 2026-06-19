@@ -293,6 +293,9 @@
   .ex-result b{color:var(--red)}
 
   /* ===== Live Demo (iframe) ===== */
+  .head.head-slim{margin-bottom:10px}
+  .head.head-slim h2{font-size:1.7rem}
+  .head.head-slim .sub{margin-top:.4rem;font-size:.92rem}
   .demo-wrap{flex:1;display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;
     overflow:hidden;box-shadow:0 10px 30px rgba(43,58,85,.1);background:#fff;min-height:0}
   .demo-bar{display:flex;align-items:center;gap:.8rem;background:#EEF1F6;padding:.6rem 1rem;flex:none}
@@ -306,7 +309,8 @@
 
   /* ===== VS Code 에디터 ===== */
   .ide-wrap{display:grid;grid-template-columns:1.55fr 1fr;gap:1.3rem;align-items:stretch}
-  .ide{background:#1E1E1E;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .ide{background:#1E1E1E;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,.25);position:relative}
+  @keyframes nextpulse{0%,100%{box-shadow:0 6px 18px rgba(200,16,46,.35)}50%{box-shadow:0 6px 26px rgba(200,16,46,.6)}}
   .ide-bar{display:flex;align-items:center;gap:.55rem;background:#323233;padding:.55rem .8rem}
   .ide-bar .tl{display:flex;gap:.4rem}
   .ide-bar .tl i{width:11px;height:11px;border-radius:50%;display:block}
@@ -486,7 +490,7 @@
       <div class="flow" id="overviewFlow">
         <div class="card">
           <span class="pill done">완료</span>
-          <h3>매장 근태 시스템 구축</h3>
+          <h3>직영매장 근태 관리 시스템 구축</h3>
           <div class="kv"><i>›</i><span>AI 바이브 코딩으로 <b>개발 완료</b></span></div>
           <div class="kv"><i>›</i><span>엑셀 수작업 → <b>시스템 전환</b></span></div>
         </div>
@@ -511,7 +515,7 @@
   <!-- 3. Done: 화면 예시 -->
   <section class="slide">
     <div class="head">
-      <h2>완료 ㅣ 매장 근태 시스템 화면</h2>
+      <h2>완료 ㅣ 직영매장 근태 관리 시스템 화면</h2>
       <div class="sub">일별 근태 입력부터 월간 현황 집계까지 <b>단일 시스템에서 처리</b></div>
     </div>
     <div class="body shots">
@@ -532,7 +536,7 @@
   <!-- 4. Done: 코딩 → 바이브 코딩 -->
   <section class="slide">
     <div class="head">
-      <h2>완료 ㅣ 매장 근태 시스템 구축</h2>
+      <h2>완료 ㅣ 직영매장 근태 관리 시스템 구축</h2>
       <div class="sub">엑셀 수작업으로 관리하던 매장 근태를 시스템으로 전환 — <b>AI 바이브 코딩 방식으로 자체 개발</b></div>
     </div>
     <div class="body">
@@ -873,9 +877,9 @@
   </section>
 
   <!-- 11. Live Demo -->
-  <section class="slide">
-    <div class="head">
-      <h2>데모 ㅣ 레시피 표준화 · 원가표 생성</h2>
+  <section class="slide demo-slide">
+    <div class="head head-slim">
+      <h2>레시피 표준화 · 원가표 생성</h2>
       <div class="sub">대략적인 메뉴 메모 입력 → <b>표준 레시피서·원가표 자동 생성</b></div>
     </div>
     <div class="body">
@@ -902,7 +906,7 @@
     --serif:&quot;Noto Serif KR&quot;,serif; --sans:&quot;IBM Plex Sans KR&quot;,system-ui,sans-serif; --mono:&quot;IBM Plex Mono&quot;,monospace;
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5;font-size:12px;-webkit-font-smoothing:antialiased;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.45;font-size:11px;-webkit-font-smoothing:antialiased;}
   .wrap{max-width:1240px;margin:0 auto;padding:0 18px;}
   header{border-bottom:1px solid var(--line);background:var(--surface);}
   header .wrap{padding:8px 18px 8px;}
@@ -970,48 +974,53 @@
     body{background:#fff;}
     #out{display:block!important;}
   }
-  .wrap.split{display:grid;grid-template-columns:0.82fr 1.18fr;gap:16px;align-items:start;}
-  .panel{padding:16px;}
+  .wrap.split{display:grid;grid-template-columns:0.78fr 1.12fr 1.0fr;gap:13px;align-items:stretch;}
+  .panel{padding:13px;}
   .panel h2{font-size:14px;margin:0 0 12px;}
   .grid3{grid-template-columns:1fr;gap:8px;}
-  textarea{margin-top:10px;min-height:90px;font-size:12px;}
+  textarea{margin-top:10px;min-height:90px;font-size:12px; height: 140px;}
   input,textarea{padding:7px 9px;font-size:12px;}
   label{font-size:10px;margin-bottom:3px;}
   .field-note{font-size:10px;}
   .actions{margin-top:12px;gap:8px;}
   button{padding:8px 14px;font-size:12px;}
-  #out{margin-top:0;}
-  .doc{padding:16px 18px;margin-bottom:12px;}
-  .doc-head{padding-bottom:9px;margin-bottom:12px;}
-  .doc-head .t{font-size:15px;}
+  #out{margin-top:0;display:contents!important;}
+  .doc{padding:10px 12px;margin-bottom:0;}
+  .doc-head{padding-bottom:6px;margin-bottom:9px;}
+  .doc-head .t{font-size:13px;}
   .doc-head .meta{font-size:10px;}
-  .sec-label{font-size:9px;margin:13px 0 7px;}
-  table{font-size:11.5px;}
-  th{font-size:9px;padding:5px 8px;}
-  td{padding:5px 8px;}
-  ol.steps li{font-size:11.5px;padding:5px 0 5px 28px;}
+  .sec-label{font-size:8px;margin:7px 0 4px;}
+  table{font-size:10.5px;}
+  th{font-size:8px;padding:2.5px 7px;}
+  td{padding:2.5px 7px;}
+  ol.steps li{font-size:10.5px;padding:2.5px 0 2.5px 24px;}
   ol.steps li::before{font-size:10px;top:5px;}
-  .cards{gap:9px;margin:4px 0 2px;}
-  .card{padding:10px 12px;border-radius:8px;}
+  .cards{gap:7px;margin:3px 0 2px;}
+  .card{padding:7px 9px;border-radius:6px;}
   .card .k{font-size:9px;}
-  .card .v{font-size:19px;margin-top:3px;}
+  .card .v{font-size:15px;margin-top:1px;}
   .card .v small{font-size:11px;}
-  .notes{padding:9px 12px;}
-  .notes li{font-size:10.5px;margin:2px 0;}
+  .notes{padding:7px 10px;}
+  .notes li{font-size:9.5px;margin:1px 0;}
   .notes .nh{font-size:9px;margin-bottom:5px;}
   .out-actions{margin-bottom:9px;}
-  @media(max-width:720px){.wrap.split{grid-template-columns:1fr;}}
+  @media(max-width:720px){.wrap.split{grid-template-columns:1fr;} #out{display:block;}}
+  /* 진행 애니메이션 */
+  .pg-title{font-family:var(--serif);font-size:15px;font-weight:700;color:var(--ink);margin-bottom:18px;text-align:center}
+  .pg-list{display:flex;flex-direction:column;gap:13px;max-width:340px;margin:0 auto}
+  .pg-item{display:flex;align-items:center;gap:11px;font-size:13px;color:var(--ink-faint);
+    opacity:.45;transition:opacity .4s ease,color .4s ease}
+  .pg-item.active{opacity:1;color:var(--ink)}
+  .pg-item.done{opacity:1;color:var(--ink-soft)}
+  .pg-ic{width:20px;height:20px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+    border:2px solid var(--line);background:#fff;transition:all .4s ease}
+  .pg-item.active .pg-ic{border-color:var(--primary);border-top-color:transparent;animation:pgspin .7s linear infinite}
+  .pg-item.done .pg-ic{border-color:var(--primary);background:var(--primary)}
+  .pg-item.done .pg-ic::after{content:&quot;✓&quot;;color:#fff;font-size:11px;font-weight:800;line-height:1}
+  @keyframes pgspin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-<header>
-  <div class=&quot;wrap&quot;>
-    <div class=&quot;eyebrow&quot;>공차 · 상품기획 · Quick Win 데모</div>
-    <h1>레시피 표준화 · 원가표 생성</h1>
-    <p>대략적인 메뉴 메모를 넣으면 표준 레시피서와 원가표를 자동으로 만들어 줍니다.</p>
-    <span class=&quot;live&quot;>Claude 실시간 호출 데모</span>
-  </div>
-</header>
 <main>
   <div class=&quot;wrap split&quot;>
     <div class=&quot;panel&quot;>
@@ -1038,7 +1047,11 @@
       </div>
       <div id=&quot;err&quot; class=&quot;error&quot; style=&quot;display:none&quot;></div>
     </div>
-    <div id=&quot;out&quot;></div><div id=&quot;outhint&quot; style=&quot;border:1px dashed var(--line);border-radius:12px;padding:40px 24px;text-align:center;color:var(--ink-faint);font-size:12px;background:var(--surface)&quot;>메뉴 정보를 입력하고 <b style=&quot;color:var(--primary)&quot;>표준화 생성</b>을 누르면<br>표준 레시피서와 원가표가 여기에 표시됩니다.</div>
+    <div id=&quot;out&quot;></div><div id=&quot;outhint&quot; style=&quot;grid-column:span 2;display:flex;align-items:center;justify-content:center;border:1px dashed var(--line);border-radius:12px;padding:24px;text-align:center;color:var(--ink-faint);font-size:12px;background:var(--surface)&quot;>메뉴 정보를 입력하고 <b style=&quot;color:var(--primary)&quot;>표준화 생성</b>을 누르면 표준 레시피서와 원가표가 여기에 표시됩니다.</div>
+    <div id=&quot;progress&quot; style=&quot;grid-column:span 2;display:none;border:1px solid var(--line);border-radius:12px;padding:34px 40px;background:var(--surface)&quot;>
+      <div class=&quot;pg-title&quot;>AI가 레시피를 표준화하고 있습니다</div>
+      <div class=&quot;pg-list&quot; id=&quot;pgList&quot;></div>
+    </div>
   </div>
 </main>
 <script>
@@ -1074,6 +1087,10 @@ async function generate(){
   btn.disabled = true;
   btn.innerHTML = '<span class=&quot;spinner&quot;></span>생성 중…';
   $('out').style.display = 'none';
+  // 진행 애니메이션 시작
+  const hint=$('outhint'); if(hint)hint.style.display='none';
+  const pgSteps=['메뉴 메모 분석','표준 계량·단위 변환','표준 레시피서 작성','재료별 원가 산정','원가율·권장가 계산'];
+  const pgPromise = runProgress(pgSteps);
   const system = `너는 버블티 프랜차이즈 '공차'의 상품기획팀을 돕는 음료 레시피 표준화 에이전트다.
 사용자의 대략적인 메뉴/재료/조리 메모를 받아 (1) 표준 레시피서와 (2) 원가표를 만든다.
 재료 단가는 한국 시장 기준의 합리적 추정치를 사용하되, 추정값임을 notes에 반드시 명시한다.
@@ -1114,8 +1131,31 @@ async function generate(){
     }catch(err){ await sleep(500); }
   }
   if(!parsed) parsed = buildLocal(menu, memo, Number(servings)||1, price);
+  await pgPromise;  // 진행 애니메이션이 끝날 때까지 대기
+  $('progress').style.display='none';
   btn.disabled=false; btn.textContent=&quot;표준화 생성&quot;;
   render(parsed);
+}
+
+// 단계별 진행 애니메이션 (각 단계 active→done 순차)
+function runProgress(steps){
+  const wrap=$('progress'), list=$('pgList');
+  if(!wrap||!list) return Promise.resolve();
+  wrap.style.display='block';
+  list.innerHTML=steps.map((s,i)=>
+    `<div class=&quot;pg-item&quot; data-i=&quot;${i}&quot;><span class=&quot;pg-ic&quot;></span><span>${s}</span></div>`).join('');
+  const items=[...list.querySelectorAll('.pg-item')];
+  return new Promise(resolve=>{
+    let i=0;
+    function step(){
+      if(i>0) items[i-1].classList.remove('active'),items[i-1].classList.add('done');
+      if(i>=items.length){ resolve(); return; }
+      items[i].classList.add('active');
+      i++;
+      setTimeout(step, 620);
+    }
+    step();
+  });
 }
 function buildLocal(menu, memo, servings, price){
   if(!menu || /타로/.test(menu)) return taroResult(menu||&quot;타로 밀크티&quot;, servings, price||5500);
@@ -1186,7 +1226,6 @@ function render(d){
     `<tr><td class=&quot;name&quot;>${esc(c.name)}</td><td>${esc(c.qty)}</td><td>${esc(c.basis||'')}</td><td class=&quot;num&quot;>${won(c.cost_won)}</td></tr>`).join('');
   const noteRows = (d.notes||[]).map(n=>`<li>${esc(n)}</li>`).join('');
   out.innerHTML = `
-  <div class=&quot;out-actions&quot;></div>
   <div class=&quot;doc&quot;>
     <div class=&quot;doc-head&quot;><span class=&quot;t&quot;>${esc(d.menu_name)} · 표준 레시피서</span>
       <span class=&quot;meta&quot;>기준 ${esc(d.servings)}잔 · ${esc(d.yield||'')}</span></div>
@@ -1210,7 +1249,7 @@ function render(d){
       <tr class=&quot;total-row&quot;><td colspan=&quot;3&quot;>합계</td><td class=&quot;num&quot;>${won(d.total_cost_won)}</td></tr></tbody></table>
     <div class=&quot;notes&quot;><div class=&quot;nh&quot;>비고 · 가정</div><ul style=&quot;margin:0;padding-left:18px&quot;>${noteRows}</ul></div>
   </div>`;
-  out.style.display='block';
+  out.style.display='contents';
   var h=document.getElementById('outhint'); if(h) h.style.display='none';
 }
 function esc(s){return String(s==null?'':s).replace(/[&amp;<>]/g,c=>({'&amp;':'&amp;amp;','<':'&amp;lt;','>':'&amp;gt;'}[c]));}
@@ -1247,6 +1286,7 @@ function esc(s){return String(s==null?'':s).replace(/[&amp;<>]/g,c=>({'&amp;':'&
   const pageno=document.getElementById('pageno');
   let i=0;
   function go(n){
+    window.pendingAdvance=null;
     i=Math.max(0,Math.min(slides.length-1,n));
     slides.forEach((s,k)=>s.classList.toggle('active',k===i));
     pageno.textContent=(i+1)+' / '+slides.length;
@@ -1257,18 +1297,24 @@ function esc(s){return String(s==null?'':s).replace(/[&amp;<>]/g,c=>({'&amp;':'&
     if(slides[i].querySelector('#chatlog'))startAgent();else stopAgent();
     if(slides[i].querySelector('.shot-stage'))startShots();else if(typeof stopShots==='function')stopShots();
   }
-  document.getElementById('next').onclick=()=>go(i+1);
+  document.getElementById('next').onclick=()=>advance();
   document.getElementById('prev').onclick=()=>go(i-1);
+  // 슬라이드 내 단계 진행 대기 함수 (있으면 다음 클릭/→ 키가 이걸 먼저 실행)
+  window.pendingAdvance=null;
+  function advance(){
+    if(typeof window.pendingAdvance==='function'){ window.pendingAdvance(); return; }
+    go(i+1);
+  }
   document.addEventListener('keydown',e=>{
-    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown')go(i+1);
+    if(e.key==='ArrowRight'||e.key===' '||e.key==='PageDown'){e.preventDefault();advance();}
     else if(e.key==='ArrowLeft'||e.key==='PageUp')go(i-1);
     else if(e.key.toLowerCase()==='f'){
       document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();
     }
   });
   document.getElementById('deck').addEventListener('click',e=>{
-    if(e.target.closest('button')||e.target.closest('[data-noadv]'))return;
-    go(i+1);
+    if(e.target.closest('button')||e.target.closest('[data-noadv]')||e.target.closest('iframe'))return;
+    advance();
   });
 
   /* 화면 예시 탭 + 자동 슬라이드 */
@@ -1295,12 +1341,13 @@ function esc(s){return String(s==null?'':s).replace(/[&amp;<>]/g,c=>({'&amp;':'&
     };
   });
 
-  /* === 10페이지: 엑셀 취합 전환 예시 === */
-  let exTimers=[];
+  /* === 10페이지: 엑셀 취합 전환 예시 (재생 중/완료 후 클릭·키로 다음 단계) === */
+  let exTimers=[], exStep=0, exDone=false, exPause=false;
   function ex(fn,ms){exTimers.push(setTimeout(fn,ms))}
-  function stopExample(){exTimers.forEach(clearTimeout);exTimers=[]}
+  function exClear(){exTimers.forEach(clearTimeout);exTimers=[]}
+  function stopExample(){exClear();}
   function startExample(){
-    stopExample();
+    exClear();
     const tracks=[...document.querySelectorAll('#exBox .et')];
     const files=[...document.querySelectorAll('#exFiles .xls')];
     const send=document.getElementById('exSend');
@@ -1315,51 +1362,96 @@ function esc(s){return String(s==null?'':s).replace(/[&amp;<>]/g,c=>({'&amp;':'&
     const out=document.getElementById('exOut');
     const talks=[...document.querySelectorAll('#exTalk .tk')];
     const result=document.getElementById('exResult');
-
+    function setTrack(k){tracks.forEach((t,j)=>{t.classList.toggle('on',j===k);t.classList.toggle('done',j<k)})}
     function resetSend(){
       send.classList.remove('show');
       prompt.classList.remove('on','fly');dn.classList.remove('on');dn2.classList.remove('on');
       ai.classList.remove('on','done','fail');aiLbl.textContent='AI 처리 중…';
     }
-    // reset 전체
-    tracks.forEach(t=>t.classList.remove('on','done'));
-    files.forEach(f=>f.classList.remove('on','scatter','aligned'));
-    resetSend();
-    fail.classList.remove('show','on');fix.classList.remove('show');
-    out.classList.remove('show','on');
-    talks.forEach(t=>t.classList.remove('on'));result.classList.remove('on');
 
-    function setTrack(k){tracks.forEach((t,j)=>{t.classList.toggle('on',j===k);t.classList.toggle('done',j<k)})}
-    let t=600;
+    // 각 단계의 "최종 상태"를 즉시 만드는 함수 (스킵 시 사용)
+    function finalStep(k){
+      if(k===0){ setTrack(0); talks[0].classList.add('on'); files.forEach(f=>f.classList.add('on')); }
+      if(k===1){ setTrack(1); talks[1].classList.add('on');
+        ptx.textContent='“파일을 합쳐줘”'; send.classList.add('show');
+        prompt.classList.add('on','fly'); dn.classList.add('on'); dn2.classList.add('on');
+        ai.classList.add('on','fail'); aiLbl.textContent='결과 확인 필요';
+        fail.classList.add('show','on'); }
+      if(k===2){ // IT 컨설팅 + 자동화 완성 통합 최종 상태
+        setTrack(3); talks[2].classList.add('on'); talks[3].classList.add('on');
+        fail.classList.remove('on','show'); fix.classList.remove('show');
+        files.forEach(f=>f.classList.add('aligned'));
+        ptx.textContent='“열 이름을 통일해서 하나로 합쳐줘”'; send.classList.add('show');
+        prompt.classList.add('on','fly'); dn.classList.add('on'); dn2.classList.add('on');
+        ai.classList.add('on','done'); aiLbl.textContent='AI 처리 완료';
+        out.classList.add('show','on'); result.classList.add('on'); }
+    }
 
-    // ── 단계1: 업무 선정 — 파일 등장 + 말풍선1
-    ex(()=>{setTrack(0);talks[0].classList.add('on')},t); t+=400;
-    files.forEach((f,k)=>ex(()=>{f.classList.add('on')},t+k*170)); t+=files.length*170+1300;
+    // 단계 k를 애니메이션으로 재생, 끝나면 자동으로 다음 단계 예약
+    function playStep(k){
+      exClear(); exStep=k; exPause=false;
+      if(k===0){
+        let t=300;
+        ex(()=>{setTrack(0);talks[0].classList.add('on')},t); t+=300;
+        files.forEach((f,j)=>ex(()=>{f.classList.add('on')},t+j*170)); t+=files.length*170+1100;
+        ex(()=>nextStep(),t);
+      }else if(k===1){
+        let t=200;
+        ex(()=>{setTrack(1);talks[1].classList.add('on')},t); t+=500;
+        ex(()=>{ptx.textContent='“파일을 합쳐줘”';send.classList.add('show');prompt.classList.add('on')},t); t+=700;
+        ex(()=>{dn.classList.add('on')},t); t+=400;
+        ex(()=>{prompt.classList.add('fly');ai.classList.add('on')},t); t+=1100;
+        ex(()=>{ai.classList.add('fail');aiLbl.textContent='결과 확인 필요';dn2.classList.add('on')},t); t+=450;
+        ex(()=>{fail.classList.add('show');requestAnimationFrame(()=>fail.classList.add('on'))},t); t+=1700;
+        ex(()=>{exPause=true;},t);  // 단계2 후 멈춤 → 클릭/키로 단계3
+      }else if(k===2){
+        // 단계3+4 통합: IT 진단 → 파일 정렬 → 통일 프롬프트 전달 → AI 처리 → 통합표 완성
+        let t=200;
+        // [3] IT 방향 컨설팅
+        ex(()=>{setTrack(2);talks[2].classList.add('on');resetSend();fail.classList.remove('on','show')},t); t+=500;
+        ex(()=>{files.forEach(f=>f.classList.add('aligned'));fix.classList.add('show')},t); t+=2000;
+        // [4] 자동화 완성 (track만 4로, IT 진단 메시지는 유지한 채 이어서 전달)
+        ex(()=>{setTrack(3);
+          ptx.textContent='“열 이름을 통일해서 하나로 합쳐줘”';send.classList.add('show');prompt.classList.add('on')},t); t+=800;
+        ex(()=>{dn.classList.add('on')},t); t+=400;
+        ex(()=>{prompt.classList.add('fly');ai.classList.add('on')},t); t+=1100;
+        ex(()=>{ai.classList.add('done');aiLbl.textContent='AI 처리 완료';dn2.classList.add('on');fix.classList.remove('show')},t); t+=450;
+        ex(()=>{out.classList.add('show');requestAnimationFrame(()=>out.classList.add('on'))},t); t+=700;
+        ex(()=>{talks[3].classList.add('on')},t); t+=800;
+        ex(()=>{result.classList.add('on')},t); t+=300;
+        ex(()=>{exDone=true;},t);  // 완료
+      }
+    }
+    // 다음 단계로 (자동 호출용)
+    function nextStep(){
+      if(exStep>=2){ return; }  // 마지막(통합 단계)이면 자동 진행 안 함
+      playStep(exStep+1);
+    }
+    // 클릭/키로 스킵: 현재 단계를 즉시 완성하고 다음 단계로
+    window.pendingAdvance=function(){
+      if(exStep>=2 && exDone){       // 통합 단계 완료 → 다음 슬라이드
+        window.pendingAdvance=null; go(i+1); return;
+      }
+      exClear();
+      finalStep(exStep);              // 현재 단계 즉시 완성
+      if(exStep>=2){                  // 통합 단계를 막 완성 → 완료 플래그만 세우고 대기
+        exDone=true;
+      }else{
+        playStep(exStep+1);           // 다음 단계 재생
+      }
+    };
 
-    // ── 단계2: 담당자 직접 시도 — 프롬프트 전달 → AI → 실패 결과
-    ex(()=>{setTrack(1);talks[1].classList.add('on')},t); t+=500;
-    ex(()=>{ptx.textContent='“파일을 합쳐줘”';send.classList.add('show');prompt.classList.add('on')},t); t+=700;
-    ex(()=>{dn.classList.add('on')},t); t+=400;
-    ex(()=>{prompt.classList.add('fly');ai.classList.add('on')},t); t+=1100;
-    ex(()=>{ai.classList.add('fail');aiLbl.textContent='결과 확인 필요';dn2.classList.add('on')},t); t+=450;
-    ex(()=>{fail.classList.add('show');requestAnimationFrame(()=>fail.classList.add('on'))},t); t+=1700;
+    function resetAll(){
+      tracks.forEach(t=>t.classList.remove('on','done'));
+      files.forEach(f=>f.classList.remove('on','scatter','aligned'));
+      resetSend(); fail.classList.remove('show','on'); fix.classList.remove('show');
+      out.classList.remove('show','on'); talks.forEach(t=>t.classList.remove('on')); result.classList.remove('on');
+    }
 
-    // ── 단계3: IT 방향 컨설팅 — 전달/실패 정리하고 진단 표시 + 파일 정렬
-    ex(()=>{setTrack(2);talks[2].classList.add('on');
-      resetSend();fail.classList.remove('on','show')},t); t+=500;
-    ex(()=>{files.forEach(f=>f.classList.add('aligned'));fix.classList.add('show')},t); t+=1900;
-
-    // ── 단계4: 자동화 완성 — 통일된 프롬프트 전달 → AI 성공 → 통합표
-    ex(()=>{setTrack(3);fix.classList.remove('show');
-      ptx.textContent='“열 이름을 통일해서 하나로 합쳐줘”';send.classList.add('show');prompt.classList.add('on')},t); t+=800;
-    ex(()=>{dn.classList.add('on')},t); t+=400;
-    ex(()=>{prompt.classList.add('fly');ai.classList.add('on')},t); t+=1100;
-    ex(()=>{ai.classList.add('done');aiLbl.textContent='AI 처리 완료';dn2.classList.add('on')},t); t+=450;
-    ex(()=>{out.classList.add('show');requestAnimationFrame(()=>out.classList.add('on'))},t); t+=700;
-    ex(()=>{talks[3].classList.add('on')},t); t+=800;
-    ex(()=>{result.classList.add('on')},t); t+=300;
-
-    ex(startExample,t+4500);
+    // 초기화 후 시작
+    exDone=false;
+    resetAll();
+    playStep(0);
   }
 
   /* === 7페이지: 계획 카드 포커스 순환 === */
@@ -1388,24 +1480,53 @@ function esc(s){return String(s==null?'':s).replace(/[&amp;<>]/g,c=>({'&amp;':'&
     flowTimer=setInterval(()=>{k=(k+1)%cards.length;apply()},1500);
   }
 
-  /* === 코딩 시퀀스: 에디터 → 바이브 코딩 순차 재생 === */
-  let seqTimer=null;
+  /* === 코딩 시퀀스: 에디터 → 바이브 (재생 중/완료 후 클릭·키로 다음) === */
+  let seqTimer=null, codeStep=0; // 0:에디터 1:바이브
   function stopCodingSeq(){stopIDE();stopVibe();if(seqTimer){clearTimeout(seqTimer);seqTimer=null}}
+  function ideFill(){
+    const code=document.getElementById('ideCode'),stat=document.getElementById('ideStat');
+    if(code)code.innerHTML=CODE.join('\n'); if(stat)stat.textContent='저장됨 ✓  Ln '+CODE.length;
+  }
+  function vibeFill(){
+    [...document.querySelectorAll('#vscreen .vs-el')].forEach(e=>e.classList.add('on'));
+    const st=document.getElementById('vstatus'); if(st)st.textContent='✓ 화면 생성 완료 — 약 1개월 만에 시스템 오픈';
+    const ty=document.getElementById('vtype'); if(ty)ty.textContent=PROMPT;
+  }
+  function codePlay(k){
+    const ide=document.getElementById('ideStage'),vibe=document.getElementById('vibeStage');
+    if(seqTimer){clearTimeout(seqTimer);seqTimer=null}
+    codeStep=k;
+    if(k===0){
+      ide.style.display='';vibe.style.display='none';
+      startIDE(()=>{ seqTimer=setTimeout(()=>codeNext(),1400); });
+    }else{ // k===1 바이브
+      ide.style.display='none';vibe.style.display='';
+      startVibe(()=>{ seqTimer=setTimeout(()=>codeNext(),3000); });
+    }
+  }
+  // codeStep: 0=에디터재생, 1=바이브재생, 2=완료
+  function codePlay(k){
+    const ide=document.getElementById('ideStage'),vibe=document.getElementById('vibeStage');
+    if(seqTimer){clearTimeout(seqTimer);seqTimer=null}
+    codeStep=k;
+    if(k===0){
+      ide.style.display='';vibe.style.display='none';
+      startIDE(()=>{ seqTimer=setTimeout(()=>codePlay(1),1400); });
+    }else if(k===1){
+      ide.style.display='none';vibe.style.display='';
+      startVibe(()=>{ codeStep=2; }); // 완료 후 대기 (자동 반복 없음)
+    }
+  }
+  function codeSkip(){ // 클릭/키
+    if(seqTimer){clearTimeout(seqTimer);seqTimer=null}
+    if(codeStep===0){ stopIDE(); ideFill(); codePlay(1); }        // 에디터 재생중 → 완성하고 바이브
+    else if(codeStep===1){ stopVibe(); vibeFill(); codeStep=2; }  // 바이브 재생중 → 즉시 완성
+    else { window.pendingAdvance=null; go(i+1); }                 // 완료 → 다음 슬라이드
+  }
   function startCodingSeq(){
     stopCodingSeq();
-    const ide=document.getElementById('ideStage');
-    const vibe=document.getElementById('vibeStage');
-    ide.style.display='';vibe.style.display='none';
-    startIDE(()=>{
-      // 에디터 완료 → 바이브 코딩으로 전환
-      seqTimer=setTimeout(()=>{
-        ide.style.display='none';vibe.style.display='';
-        startVibe(()=>{
-          // 바이브 완료 → 잠시 후 처음부터
-          seqTimer=setTimeout(startCodingSeq,3000);
-        });
-      },1500);
-    });
+    window.pendingAdvance=codeSkip;
+    codePlay(0);
   }
 
   /* VS Code 에디터 코딩 애니메이션 */
